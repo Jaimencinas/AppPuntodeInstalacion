@@ -1,0 +1,306 @@
+<meta charset="UTF-8">
+<title>Reservar instalación — Volta Baterías</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F5F5;
+    --surface:#FFFFFF;
+    --surface-2:#F5F5F5;
+    --ink:#1A1A1A;
+    --ink-soft:#6B6B6B;
+    --line:#E4E4E4;
+    --brand:#D63B2F;
+    --accent:#E8501A;
+    --accent-ink:#FFFFFF;
+    --accent-soft:#FBE2D8;
+    --ok:#1E7A44;
+    --ok-soft:#E1F0E5;
+    --danger:#8F2A24;
+    --danger-soft:#F3E1DE;
+    --radius:6px;
+    --shadow: 0 1px 2px rgba(13,13,13,.06), 0 8px 24px -12px rgba(13,13,13,.20);
+    --font-display: 'Barlow Condensed', Impact, "Arial Black", sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0D0D0D; --surface:#171717; --surface-2:#212121; --ink:#F5F5F5; --ink-soft:#A8A8A8;
+      --line:#333333; --brand:#E8593F; --accent:#FF6A2E; --accent-ink:#1A0D0B; --accent-soft:#3C1F14;
+      --ok:#57B37F; --ok-soft:#1B2E22; --danger:#D9807C; --danger-soft:#3A2422;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+      color-scheme: dark;
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'DM Sans', ui-sans-serif, "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  .wrap{ max-width:640px; margin:0 auto; padding:28px 20px 80px; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    padding-bottom:20px; margin-bottom:24px; border-bottom:1px solid var(--line); }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .logo-badge{ width:30px; height:30px; border-radius:8px; flex-shrink:0; background:#FFFFFF;
+    border:1px solid var(--line); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; }
+  .wordmark{ display:flex; flex-direction:column; line-height:1; gap:1px; }
+  .wordmark .w-top{ font-family:var(--font-display); font-weight:800; font-size:20px; letter-spacing:.01em;
+    text-transform:uppercase; color:var(--ink); }
+  .wordmark .w-bottom{ font-family:'DM Sans',sans-serif; font-weight:700; font-size:8.5px; letter-spacing:.16em;
+    color:var(--brand); text-transform:uppercase; }
+  .back-link{ font-size:12.5px; color:var(--ink-soft); text-decoration:none; font-weight:600; }
+  .back-link:hover{ color:var(--accent); }
+
+  h1,h2,h3{ font-family:var(--font-display); font-weight:800; letter-spacing:.01em; text-transform:uppercase;
+    margin:0; line-height:1.05; }
+  .page-head p{ margin:6px 0 0; color:var(--ink-soft); font-size:14px; max-width:60ch; }
+  .page-head h2{ font-size:22px; }
+
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
+  .form-card{ padding:24px; margin-top:22px; }
+
+  .section-label{ font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--brand);
+    font-weight:700; margin:0 0 12px; }
+  .section-label.spaced{ margin-top:26px; }
+
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; }
+  @media (max-width:520px){ .grid2{ grid-template-columns:1fr; } }
+
+  .field{ display:flex; flex-direction:column; gap:4px; margin-bottom:14px; }
+  .field label{ font-size:11.5px; color:var(--ink-soft); font-weight:600; }
+  .field input, .field select{
+    border:1px solid var(--line); border-radius:7px; padding:10px 11px; font-size:13.5px;
+    background:var(--surface); color:var(--ink); font-family:inherit; width:100%;
+  }
+  .field input:focus-visible, .field select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .field.error input, .field.error select{ border-color:var(--danger); }
+  .field .err-msg{ font-size:11px; color:var(--danger); display:none; }
+  .field.error .err-msg{ display:block; }
+
+  .mode-toggle{ display:flex; gap:8px; margin-bottom:14px; }
+  .mode-btn{
+    flex:1; border:1px solid var(--line); background:var(--surface); border-radius:8px;
+    padding:12px 10px; text-align:left; cursor:pointer; font-family:inherit; color:var(--ink);
+  }
+  .mode-btn.selected{ border-color:var(--accent); background:var(--accent-soft); }
+  .mode-btn .t{ font-weight:700; font-size:13px; }
+  .mode-btn .d{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+
+  .primary-btn{
+    background:var(--accent); color:var(--accent-ink); border:0; border-radius:6px;
+    padding:12px 20px; font-weight:800; font-size:13px; cursor:pointer; font-family:inherit;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .primary-btn:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+
+  .form-actions{ display:flex; justify-content:flex-end; margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+
+  .confirm-screen{ text-align:center; padding:38px 24px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .confirm-screen h2{ font-size:22px; }
+  .confirm-screen p{ color:var(--ink-soft); font-size:14px; max-width:48ch; margin:0; }
+  .qr-box{ background:#FFFFFF; padding:14px; border-radius:10px; border:1px solid var(--line); margin:8px 0; }
+  .qr-box img{ display:block; width:200px; height:200px; }
+  .confirm-code{
+    font-family: ui-monospace, "SF Mono", monospace; font-size:22px; font-weight:700; letter-spacing:.06em;
+    background:var(--ok-soft); color:var(--ok); padding:8px 16px; border-radius:8px;
+    border:1px solid color-mix(in srgb,var(--ok) 35%,transparent);
+  }
+  .foot-note{ margin-top:34px; padding-top:18px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-soft); text-align:center; }
+
+  #reserva-form{ display:none; }
+  #reserva-form.active{ display:block; }
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo-badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="#E8501A"/></svg>
+      </span>
+      <div class="wordmark"><span class="w-top">Volta</span><span class="w-bottom">Baterías</span></div>
+    </div>
+    <a class="back-link" href="prototipo-volta.html">← Volver al inicio</a>
+  </div>
+
+  <div class="page-head">
+    <h2>Reserva tu instalación</h2>
+    <p>Elegí el punto, cuándo querés ir y tus datos. Al confirmar te damos un código QR — muéstralo en el punto para que puedan verificar tu reserva y dejar registrada la instalación.</p>
+  </div>
+
+  <div class="card form-card">
+    <form id="reserva-form" class="active" novalidate>
+      <div class="section-label">Punto de instalación</div>
+      <div class="field" id="f-punto-wrap">
+        <label for="rc-punto">Elegí tu punto</label>
+        <select id="rc-punto"><!-- injected --></select>
+      </div>
+
+      <div class="section-label spaced">¿Cómo querés ir?</div>
+      <div class="mode-toggle">
+        <button type="button" class="mode-btn selected" data-mode="cita">
+          <div class="t">Reservar cita</div><div class="d">Elegís día y hora</div>
+        </button>
+        <button type="button" class="mode-btn" data-mode="walkin">
+          <div class="t">Voy ahora</div><div class="d">Walk-in, sin esperar cita</div>
+        </button>
+      </div>
+
+      <div class="grid2" id="fecha-hora-wrap">
+        <div class="field">
+          <label for="rc-fecha">Fecha</label>
+          <input id="rc-fecha" type="date" />
+        </div>
+        <div class="field">
+          <label for="rc-hora">Hora</label>
+          <input id="rc-hora" type="time" value="10:00" />
+        </div>
+      </div>
+
+      <div class="section-label spaced">Tus datos</div>
+      <div class="grid2">
+        <div class="field" id="f-nombre-wrap">
+          <label for="rc-nombre">Nombre *</label>
+          <input id="rc-nombre" placeholder="María Gómez" />
+          <span class="err-msg">Indica tu nombre.</span>
+        </div>
+        <div class="field">
+          <label for="rc-tel">Teléfono</label>
+          <input id="rc-tel" placeholder="600 123 456" />
+        </div>
+        <div class="field">
+          <label for="rc-marca">Marca</label>
+          <input id="rc-marca" placeholder="Seat" />
+        </div>
+        <div class="field">
+          <label for="rc-modelo">Modelo</label>
+          <input id="rc-modelo" placeholder="Ibiza" />
+        </div>
+        <div class="field" id="f-matricula-wrap" style="grid-column:1 / -1;">
+          <label for="rc-matricula">Matrícula *</label>
+          <input id="rc-matricula" placeholder="4021-GTX" />
+          <span class="err-msg">Indica la matrícula.</span>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="primary-btn">Confirmar reserva</button>
+      </div>
+    </form>
+
+    <div class="confirm-screen" id="confirm-screen" style="display:none;">
+      <h2>Reserva confirmada</h2>
+      <p id="confirm-sub"></p>
+      <div class="qr-box"><img id="qr-img" alt="Código QR de la reserva" /></div>
+      <div class="confirm-code" id="confirm-code"></div>
+      <p>Muestra este QR (o el código) en el punto de instalación — lo escanean para confirmar tu reserva y dejar registrada la instalación con trazabilidad.</p>
+      <a class="primary-btn" style="text-decoration:none; display:inline-flex; align-items:center; margin-top:8px;" href="prototipo-volta.html">Volver al inicio</a>
+    </div>
+  </div>
+
+  <div class="foot-note">Prototipo de interfaz — el QR se genera con un servicio externo (api.qrserver.com) a partir del código de reserva.</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var NEW_KEY = "volta_puntos_nuevos";
+  var RESERVAS_KEY = "volta_reservas_cliente";
+
+  var basePuntos = [
+    {name:"Taller Nervión", city:"Sevilla"},
+    {name:"Gruas Triana 24h", city:"Sevilla"},
+    {name:"Punto Este Volta", city:"Sevilla"},
+    {name:"Taller Malasaña", city:"Madrid"},
+    {name:"Gruas Centro", city:"Madrid"},
+    {name:"Taller Eixample", city:"Barcelona"},
+    {name:"Punto Gràcia", city:"Barcelona"},
+    {name:"Taller Ruzafa", city:"Valencia"},
+    {name:"Gruas Bilbao Norte", city:"Bilbao"}
+  ];
+
+  function loadNuevos(){
+    try{ return JSON.parse(localStorage.getItem(NEW_KEY)) || []; }
+    catch(e){ return []; }
+  }
+  var allPuntos = basePuntos.concat(loadNuevos().map(function(p){ return {name:p.name, city:p.city}; }));
+
+  var puntoSelect = document.getElementById("rc-punto");
+  puntoSelect.innerHTML = allPuntos.map(function(p){
+    return '<option value="'+p.name+'">'+p.name+' — '+p.city+'</option>';
+  }).join('');
+
+  var modo = "cita";
+  document.querySelectorAll(".mode-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      modo = btn.dataset.mode;
+      document.querySelectorAll(".mode-btn").forEach(function(b){ b.classList.toggle("selected", b===btn); });
+      document.getElementById("fecha-hora-wrap").style.display = modo === "cita" ? "grid" : "none";
+    });
+  });
+
+  var todayIso = new Date().toISOString().slice(0,10);
+  document.getElementById("rc-fecha").value = todayIso;
+  document.getElementById("rc-fecha").min = todayIso;
+
+  function loadReservas(){
+    try{ return JSON.parse(localStorage.getItem(RESERVAS_KEY)) || []; }
+    catch(e){ return []; }
+  }
+  function saveReservas(list){ localStorage.setItem(RESERVAS_KEY, JSON.stringify(list)); }
+
+  document.getElementById("reserva-form").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    var nombreEl = document.getElementById("rc-nombre");
+    var matriculaEl = document.getElementById("rc-matricula");
+    var nombre = nombreEl.value.trim();
+    var matricula = matriculaEl.value.trim();
+
+    var valid = true;
+    document.getElementById("f-nombre-wrap").classList.remove("error");
+    document.getElementById("f-matricula-wrap").classList.remove("error");
+    if(!nombre){ document.getElementById("f-nombre-wrap").classList.add("error"); valid = false; }
+    if(!matricula){ document.getElementById("f-matricula-wrap").classList.add("error"); valid = false; }
+    if(!valid) return;
+
+    var punto = allPuntos.find(function(p){ return p.name === puntoSelect.value; });
+    var code = "VLT-" + Math.floor(10000 + Math.random()*89999);
+
+    var reserva = {
+      code: code,
+      puntoName: punto.name,
+      puntoCity: punto.city,
+      walkin: modo === "walkin",
+      fecha: modo === "cita" ? document.getElementById("rc-fecha").value : null,
+      hora: modo === "cita" ? document.getElementById("rc-hora").value : null,
+      nombre: nombre,
+      telefono: document.getElementById("rc-tel").value.trim(),
+      marca: document.getElementById("rc-marca").value.trim(),
+      modelo: document.getElementById("rc-modelo").value.trim(),
+      matricula: matricula,
+      estado: "pendiente",
+      createdAt: new Date().toISOString()
+    };
+
+    var list = loadReservas();
+    list.push(reserva);
+    saveReservas(list);
+
+    var sub = modo === "walkin"
+      ? "Te esperamos en " + punto.name + " — el punto te verá como \"voy ahora\"."
+      : punto.name + " · " + reserva.fecha + " a las " + reserva.hora;
+
+    document.getElementById("confirm-sub").textContent = sub;
+    document.getElementById("confirm-code").textContent = code;
+    document.getElementById("qr-img").src =
+      "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(code);
+
+    document.getElementById("reserva-form").classList.remove("active");
+    document.getElementById("confirm-screen").style.display = "flex";
+  });
+})();
+</script>

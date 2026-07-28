@@ -1,0 +1,707 @@
+<meta charset="UTF-8">
+<title>Panel de administración — Volta Baterías</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --surface:#FFFFFF;
+    --surface-2:#F5F5F5;
+    --ink:#1A1A1A;
+    --ink-soft:#6B6B6B;
+    --line:#E4E4E4;
+    --brand:#D63B2F;
+    --accent:#E8501A;
+    --accent-ink:#FFFFFF;
+    --accent-soft:#FBE2D8;
+    --ok:#1E7A44;
+    --ok-soft:#E1F0E5;
+    --warn:#A8791F;
+    --warn-soft:#F4EBD6;
+    --danger:#8F2A24;
+    --danger-soft:#F3E1DE;
+    --chart-1:#E8501A;
+    --chart-2:#0D0D0D;
+    --tooltip-bg:#0D0D0D;
+    --tooltip-ink:#F6F4EF;
+    --radius:6px;
+    --shadow: 0 1px 2px rgba(13,13,13,.06), 0 8px 24px -12px rgba(13,13,13,.20);
+    --font-display: 'Barlow Condensed', Impact, "Arial Black", sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0D0D0D; --surface:#171717; --surface-2:#212121; --ink:#F5F5F5; --ink-soft:#A8A8A8;
+      --line:#333333; --brand:#E8593F; --accent:#FF6A2E; --accent-ink:#1A0D0B; --accent-soft:#3C1F14;
+      --ok:#57B37F; --ok-soft:#1B2E22; --warn:#D3A94F; --warn-soft:#3A311D;
+      --danger:#D9807C; --danger-soft:#3A2422; --chart-1:#FF6A2E; --chart-2:#D9D5CB;
+      --tooltip-bg:#F3F1EC; --tooltip-ink:#0D0D0D;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+      color-scheme: dark;
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'DM Sans', ui-sans-serif, "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; flex-wrap:wrap; padding-bottom:20px; margin-bottom:24px; border-bottom:1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .logo-badge{
+    width:34px; height:34px; border-radius:9px; background:#FFFFFF;
+    border:1px solid var(--line); box-shadow:var(--shadow);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .wordmark{ display:flex; flex-direction:column; line-height:1; gap:1px; }
+  .wordmark .w-top{ font-family:var(--font-display); font-weight:800; font-size:19px; letter-spacing:.01em; color:var(--ink); text-transform:uppercase; }
+  .wordmark .w-bottom{ font-family:'DM Sans',sans-serif; font-weight:700; font-size:9px; letter-spacing:.16em; color:var(--brand); text-transform:uppercase; }
+  .tag{font-size:12.5px; color:var(--ink-soft); font-weight:500; margin-left:6px;}
+  .status-pill{
+    font-size:11px; text-transform:uppercase; letter-spacing:.08em;
+    background:var(--accent-soft); color:var(--accent);
+    padding:4px 10px; border-radius:999px; font-weight:600;
+    border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .login-link{
+    color:var(--ink-soft); text-decoration:none; border-bottom:1px solid var(--line);
+    font-size:12.5px; font-weight:600;
+  }
+  .login-link:hover{ color:var(--accent); border-color:var(--accent); }
+
+  h1,h2,h3{ font-family: var(--font-display); font-weight:800; letter-spacing:.01em; text-transform:uppercase; text-wrap:balance; margin:0; line-height:1.05; }
+  .view-head{ margin-bottom:22px; }
+  .view-head h2{ font-size:22px; }
+  .view-head p{ margin:6px 0 0; color:var(--ink-soft); font-size:14px; max-width:60ch; }
+
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
+
+  .primary-btn{
+    background:var(--accent); color:var(--accent-ink); border:0; border-radius:6px;
+    padding:12px 14px; font-weight:800; font-size:13px; cursor:pointer; font-family:inherit;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .primary-btn:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+
+  .register-cta{
+    display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+    padding:18px 20px; margin:22px 0 4px;
+  }
+  .register-cta-text h3{ font-size:16px; }
+  .register-cta-text p{ margin:4px 0 0; font-size:12.5px; color:var(--ink-soft); max-width:56ch; }
+  .register-confirm{
+    display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ok);
+    background:var(--ok-soft); border:1px solid color-mix(in srgb, var(--ok) 35%, transparent);
+    border-radius:8px; padding:10px 12px; margin-top:14px;
+  }
+
+  .kpi-section-label{
+    font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--brand);
+    font-weight:700; margin:0 0 10px;
+  }
+  .kpi-section-label.spaced{ margin-top:26px; }
+  .kpi-filter-row{ display:flex; gap:12px; align-items:flex-end; margin-bottom:16px; }
+  .kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:8px; }
+  @media (max-width:820px){ .kpi-grid{ grid-template-columns:repeat(2,1fr); } }
+  .kpi{ padding:16px 16px 14px; border-top:3px solid var(--accent); }
+  .kpi .label{ font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-soft); font-weight:700; }
+  .kpi .value{ font-family: var(--font-display); font-size:28px; font-weight:800; margin-top:6px; font-variant-numeric:tabular-nums; }
+  .kpi .delta{ font-size:11.5px; margin-top:4px; font-weight:600; }
+  .kpi .delta.up{ color:var(--ok); }
+  .kpi .delta.warn{ color:var(--warn); }
+  .kpi .delta.critical{ color:var(--danger); }
+
+  .admin-row-2col{ display:grid; grid-template-columns:1.5fr 1fr; gap:20px; align-items:start; margin:26px 0 20px; }
+  @media (max-width:980px){ .admin-row-2col{ grid-template-columns:1fr; } }
+
+  .chart-card{ padding:18px; }
+  .chart-head{ display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:10px; }
+  .chart-head h4{ font-size:13px; }
+  .chart-head .sub{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .chart-controls{ display:flex; align-items:center; gap:14px; }
+  .chart-legend{ display:flex; gap:14px; font-size:11.5px; color:var(--ink-soft); }
+  .chart-legend .sw{ display:inline-flex; align-items:center; gap:5px; }
+  .chart-legend i{ width:10px; height:3px; border-radius:2px; display:inline-block; }
+  .link-btn{
+    background:transparent; border:0; color:var(--ink-soft); font-size:11.5px; font-weight:600;
+    cursor:pointer; font-family:inherit; text-decoration:underline; text-underline-offset:2px; padding:0;
+  }
+  .link-btn:hover{ color:var(--accent); }
+
+  .chart-filters{ display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+  .filter-field{ display:flex; flex-direction:column; gap:4px; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); font-weight:700; }
+  .filter-field select{
+    border:1px solid var(--line); border-radius:7px; padding:7px 28px 7px 9px; font-size:12.5px;
+    background:var(--surface); color:var(--ink); font-family:inherit; text-transform:none; letter-spacing:normal;
+    font-weight:400; cursor:pointer; min-width:170px;
+  }
+  .filter-field select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  .trend-wrap{ position:relative; margin-top:14px; }
+  .trend-svg{ width:100%; height:auto; display:block; overflow:visible; }
+  .trend-tooltip{
+    position:absolute; pointer-events:none; background:var(--tooltip-bg); color:var(--tooltip-ink);
+    font-size:11px; line-height:1.5; padding:7px 9px; border-radius:7px; white-space:nowrap;
+    opacity:0; transition:opacity .1s; transform:translate(-50%,-112%); z-index:5;
+  }
+  .trend-tooltip b{ font-variant-numeric:tabular-nums; }
+  .trend-table-wrap{ display:none; margin-top:14px; }
+  .trend-table-wrap table{ font-size:12px; }
+  .trend-table-wrap td, .trend-table-wrap th{ padding:6px 10px; }
+
+  .alerts-card{ padding:16px 18px; }
+  .alerts-card h4{ font-size:13px; margin-bottom:2px; }
+  .alerts-card .sub{ font-size:11.5px; color:var(--ink-soft); margin-bottom:6px; }
+  .alert-item{ display:flex; gap:10px; align-items:flex-start; padding:11px 0; border-top:1px solid var(--line); }
+  .alert-item:first-of-type{ border-top:none; }
+  .alert-sev{ width:8px; height:8px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+  .alert-sev.critical{ background:var(--danger); }
+  .alert-sev.warning{ background:var(--warn); }
+  .alert-text{ font-size:12.5px; line-height:1.5; }
+  .alert-text b{ color:var(--ink); }
+  .alert-meta{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+
+  .admin-layout{ display:grid; grid-template-columns:1.3fr 1fr; gap:20px; align-items:start; }
+  @media (max-width:980px){ .admin-layout{ grid-template-columns:1fr; } }
+
+  th.sortable{ cursor:pointer; user-select:none; white-space:nowrap; }
+  th.sortable:hover{ color:var(--ink); }
+  th.sortable .arrow{ display:inline-block; margin-left:3px; opacity:.5; font-size:9px; }
+  th.sortable.active .arrow{ opacity:1; color:var(--accent); }
+
+  .map-card{ padding:16px; }
+  .map-card h4{ font-size:13px; margin-bottom:10px; }
+  .map-canvas{
+    position:relative; height:320px; border-radius:8px; overflow:hidden;
+    background:
+      linear-gradient(var(--surface-2) 1px, transparent 1px) 0 0/28px 28px,
+      linear-gradient(90deg, var(--surface-2) 1px, transparent 1px) 0 0/28px 28px,
+      var(--surface);
+    border:1px solid var(--line);
+  }
+  .map-dot{
+    position:absolute; width:11px; height:11px; border-radius:50%;
+    border:2px solid var(--surface); box-shadow:0 0 0 1px var(--line);
+    cursor:pointer;
+  }
+  .map-dot[data-level="alto"]{ background:var(--ok); }
+  .map-dot[data-level="medio"]{ background:var(--warn); }
+  .map-dot[data-level="bajo"]{ background:var(--danger); }
+  .map-legend{ display:flex; gap:16px; margin-top:10px; font-size:11.5px; color:var(--ink-soft); }
+  .map-legend .sw{ display:inline-flex; align-items:center; gap:5px; }
+  .map-legend i{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+
+  .table-card{ padding:0; overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  thead th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft);
+    padding:10px 14px; border-bottom:1px solid var(--line); font-weight:700;
+  }
+  tbody td{ padding:10px 14px; border-bottom:1px solid var(--line); }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:var(--surface-2); }
+  .est-dot{ width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:6px; }
+
+  .overflow-x{ overflow-x:auto; }
+
+  .foot-note{
+    margin-top:36px; padding-top:18px; border-top:1px solid var(--line);
+    font-size:12px; color:var(--ink-soft); text-align:center;
+  }
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo-badge">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="#E8501A"/></svg>
+      </span>
+      <div class="wordmark"><span class="w-top">Volta</span><span class="w-bottom">Baterías</span></div>
+      <span class="tag">panel de administración — control total de la red</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <span class="status-pill">Datos de ejemplo, no reales</span>
+      <a class="login-link" href="login-punto.html">Acceso de puntos →</a>
+    </div>
+  </div>
+
+  <section class="view-punto-none">
+    <div class="view-head">
+      <h2>Panel de administración Volta</h2>
+      <p>Vista global de la red: trazabilidad y ventas, stock y operación, tendencia de reservas, alertas que necesitan atención, y el detalle por punto. Solo tú ves todos los puntos a la vez.</p>
+    </div>
+
+    <div class="kpi-filter-row">
+      <label class="filter-field">Ver datos de
+        <select id="kpi-point-filter"><!-- injected --></select>
+      </label>
+    </div>
+
+    <div class="kpi-section-label">Trazabilidad y ventas</div>
+    <div class="kpi-grid" id="kpi-grid-ventas"><!-- injected --></div>
+
+    <div class="kpi-section-label spaced">Stock y operación</div>
+    <div class="kpi-grid" id="kpi-grid-stock"><!-- injected --></div>
+
+    <div class="admin-row-2col">
+      <div class="card chart-card">
+        <div class="chart-head">
+          <div>
+            <h4 id="trend-title">Reservas por día</h4>
+            <div class="sub" id="trend-sub">Citas frente a walk-in, red completa</div>
+          </div>
+          <div class="chart-controls">
+            <div class="chart-legend" id="trend-legend"><!-- injected --></div>
+            <button class="link-btn" id="trend-toggle">Ver como tabla</button>
+          </div>
+        </div>
+        <div class="chart-filters">
+          <label class="filter-field">Punto
+            <select id="trend-point-filter"><!-- injected --></select>
+          </label>
+          <label class="filter-field">Periodo
+            <select id="trend-range-filter">
+              <option value="7">Últimos 7 días</option>
+              <option value="14" selected>Últimos 14 días</option>
+              <option value="30">Últimos 30 días</option>
+            </select>
+          </label>
+        </div>
+        <div class="trend-wrap" id="trend-wrap">
+          <div id="trend-svg-container"><!-- injected --></div>
+          <div class="trend-tooltip" id="trend-tooltip"></div>
+        </div>
+        <div class="trend-table-wrap overflow-x" id="trend-table-wrap">
+          <table>
+            <thead><tr><th>Día</th><th>Citas</th><th>Walk-in</th><th>Total</th></tr></thead>
+            <tbody id="trend-table-body"><!-- injected --></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card alerts-card">
+        <h4>Necesita tu atención</h4>
+        <div class="sub">Ordenado por urgencia</div>
+        <div id="alerts-list"><!-- injected --></div>
+      </div>
+    </div>
+
+    <div class="card register-cta">
+      <div class="register-cta-text">
+        <h3>Registrar nuevo punto de instalación</h3>
+        <p>Formulario completo: datos de contacto, horario, descripción del punto y configuración inicial. Se abre en una página aparte y, al guardar, vuelve aquí con el punto ya creado.</p>
+      </div>
+      <button class="primary-btn" id="open-register-btn" style="margin-top:0; white-space:nowrap;">+ Registrar nuevo punto</button>
+    </div>
+    <div id="register-confirm-box"></div>
+
+    <div class="admin-layout">
+      <div class="card map-card">
+        <h4>Puntos activos por nivel de stock</h4>
+        <div class="map-canvas" id="map-canvas"><!-- dots injected --></div>
+        <div class="map-legend">
+          <span class="sw"><i style="background:var(--ok)"></i> Stock alto</span>
+          <span class="sw"><i style="background:var(--warn)"></i> Stock medio</span>
+          <span class="sw"><i style="background:var(--danger)"></i> Stock bajo</span>
+        </div>
+      </div>
+
+      <div class="card table-card">
+        <div class="overflow-x">
+          <table>
+            <thead>
+              <tr id="admin-table-head"><!-- injected --></tr>
+            </thead>
+            <tbody id="admin-table"><!-- injected --></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot-note">
+    Prototipo de interfaz — sin conexión a base de datos real. Sirve para validar el flujo y el diseño antes de construir la Fase 0/1 del sistema.
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ===================== ADMIN: puntos de la red =====================
+  var puntosAdmin = [
+    {name:"Taller Nervión", city:"Sevilla", type:"Taller", stock:7, level:"alto", x:38, y:70, instalaciones:42, trazabilidad:98.5, ticketMedio:30.20, noPresentado:3.1, rotacion:2.1, recomprasPendientes:2, recomprasAtrasadas:0, tiempoMedio:29},
+    {name:"Gruas Triana 24h", city:"Sevilla", type:"Gruista", stock:4, level:"medio", x:33, y:74, instalaciones:27, trazabilidad:95.2, ticketMedio:29.50, noPresentado:4.8, rotacion:1.6, recomprasPendientes:1, recomprasAtrasadas:1, tiempoMedio:33},
+    {name:"Punto Este Volta", city:"Sevilla", type:"Personal propio", stock:2, level:"bajo", x:44, y:66, instalaciones:9, trazabilidad:88.0, ticketMedio:28.00, noPresentado:8.5, rotacion:0.9, recomprasPendientes:0, recomprasAtrasadas:0, tiempoMedio:41},
+    {name:"Taller Malasaña", city:"Madrid", type:"Taller", stock:9, level:"alto", x:52, y:38, instalaciones:55, trazabilidad:99.1, ticketMedio:30.50, noPresentado:2.0, rotacion:2.4, recomprasPendientes:3, recomprasAtrasadas:1, tiempoMedio:26},
+    {name:"Gruas Centro", city:"Madrid", type:"Gruista", stock:6, level:"alto", x:56, y:35, instalaciones:38, trazabilidad:97.0, ticketMedio:29.90, noPresentado:3.5, rotacion:2.0, recomprasPendientes:2, recomprasAtrasadas:2, tiempoMedio:31},
+    {name:"Taller Eixample", city:"Barcelona", type:"Taller", stock:3, level:"medio", x:82, y:32, instalaciones:19, trazabilidad:91.4, ticketMedio:28.70, noPresentado:6.2, rotacion:1.3, recomprasPendientes:1, recomprasAtrasadas:1, tiempoMedio:37},
+    {name:"Punto Gràcia", city:"Barcelona", type:"Personal propio", stock:1, level:"bajo", x:85, y:28, instalaciones:6, trazabilidad:82.3, ticketMedio:27.50, noPresentado:11.0, rotacion:0.6, recomprasPendientes:0, recomprasAtrasadas:0, tiempoMedio:46},
+    {name:"Taller Ruzafa", city:"Valencia", type:"Taller", stock:8, level:"alto", x:66, y:56, instalaciones:47, trazabilidad:98.0, ticketMedio:30.10, noPresentado:2.8, rotacion:2.2, recomprasPendientes:2, recomprasAtrasadas:1, tiempoMedio:28},
+    {name:"Gruas Bilbao Norte", city:"Bilbao", type:"Gruista", stock:5, level:"medio", x:47, y:14, instalaciones:24, trazabilidad:94.6, ticketMedio:29.20, noPresentado:5.0, rotacion:1.5, recomprasPendientes:1, recomprasAtrasadas:1, tiempoMedio:34}
+  ];
+  puntosAdmin.forEach(function(p){ p.ingresos = p.instalaciones * 30; });
+
+  // ---------- puntos dados de alta desde registro-punto.html ----------
+  (function mergePuntosNuevos(){
+    var nuevos;
+    try{ nuevos = JSON.parse(localStorage.getItem("volta_puntos_nuevos")) || []; }
+    catch(e){ nuevos = []; }
+    nuevos.forEach(function(p){
+      if(puntosAdmin.some(function(existing){ return existing.name===p.name; })) return;
+      puntosAdmin.push({
+        name:p.name, city:p.city, type:p.type, stock:p.stock, level:p.level,
+        x: Math.round(15 + Math.random()*70), y: Math.round(15 + Math.random()*70),
+        instalaciones:0, trazabilidad:0, ticketMedio:0, noPresentado:0, rotacion:0,
+        recomprasPendientes:0, recomprasAtrasadas:0, tiempoMedio:0, ingresos:0
+      });
+    });
+  })();
+
+  // ---------- KPIs filtrables por punto (toda la red o uno solo) ----------
+  var kpiPoint = "all";
+
+  document.getElementById("kpi-point-filter").innerHTML =
+    '<option value="all">Toda la red</option>' +
+    puntosAdmin.map(function(p){ return '<option value="'+p.name+'">'+p.name+'</option>'; }).join('');
+
+  function fmtEs(n, decimals){
+    return n.toLocaleString('es-ES', {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
+  }
+
+  var kpiVentasDefs = [
+    { label:"Tasa de trazabilidad", all:function(){
+        return { value:"97.4%", delta:"▲ 3.1 pts vs. mes anterior", cls:"up" };
+      }, point:function(p){
+        var ok = p.trazabilidad >= 95;
+        return { value:p.trazabilidad.toFixed(1)+"%", delta:(ok?"▲ por encima del objetivo (95%)":"▼ por debajo del objetivo (95%)"), cls:ok?"up":"warn" };
+      } },
+    { label:"Ingresos del mes", all:function(){
+        return { value:"8.010 €", delta:"▲ 640 € vs. mes anterior", cls:"up" };
+      }, point:function(p){
+        var share = Math.round((p.ingresos/8010)*100);
+        return { value:fmtEs(p.ingresos,0)+" €", delta:share+"% del total de la red", cls:"up" };
+      } },
+    { label:"Ticket medio de servicio", all:function(){
+        return { value:"29,80 €", delta:"▲ 0,3 pts vs. objetivo (30 €)", cls:"up" };
+      }, point:function(p){
+        var ok = p.ticketMedio >= 29;
+        return { value:fmtEs(p.ticketMedio,2)+" €", delta:(ok?"▲ cerca del objetivo (30 €)":"▼ por debajo del objetivo (30 €)"), cls:ok?"up":"warn" };
+      } },
+    { label:"Tasa de no presentado", all:function(){
+        return { value:"4.2%", delta:"▲ 0.6 pts vs. mes anterior", cls:"warn" };
+      }, point:function(p){
+        var bad = p.noPresentado >= 6;
+        return { value:p.noPresentado.toFixed(1)+"%", delta:(bad?"▲ por encima de la media de la red (4.2%)":"▼ por debajo de la media de la red (4.2%)"), cls:bad?"warn":"up" };
+      } }
+  ];
+
+  var kpiStockDefs = [
+    { label:"Rotación de stock", all:function(){
+        return { value:"1.8×", delta:"▲ 0.2 vs. mes anterior", cls:"up" };
+      }, point:function(p){
+        var ok = p.rotacion >= 1.5;
+        return { value:p.rotacion.toFixed(1)+"×", delta:(ok?"▲ saludable":"▼ por debajo de 1.5× — vende poco su stock"), cls:ok?"up":"warn" };
+      } },
+    { label:"Recompras pendientes", all:function(){
+        return { value:"12", delta:"7 llevan >5 días", cls:"warn" };
+      }, point:function(p){
+        return { value:String(p.recomprasPendientes), delta:(p.recomprasAtrasadas>0 ? p.recomprasAtrasadas+" llevan >5 días" : "ninguna atrasada"), cls:p.recomprasAtrasadas>0?"warn":"up" };
+      } },
+    { label:"Puntos con stock crítico", all:function(){
+        return { value:"2", delta:"< 3 unidades — riesgo de rotura", cls:"critical" };
+      }, point:function(p){
+        var txt = p.level==="alto" ? "▲ saludable" : p.level==="medio" ? "● vigilar" : "▼ urgente — reponer";
+        var cls = p.level==="alto" ? "up" : p.level==="medio" ? "warn" : "critical";
+        return { label:"Nivel de stock", value:p.stock+" / 10", delta:txt, cls:cls };
+      } },
+    { label:"Tiempo medio instalación", all:function(){
+        return { value:"34 min", delta:"▼ 4 min vs. mes anterior", cls:"up" };
+      }, point:function(p){
+        var faster = p.tiempoMedio <= 34;
+        return { value:p.tiempoMedio+" min", delta:(faster?"▲ más rápido que la media (34 min)":"▼ más lento que la media (34 min)"), cls:faster?"up":"warn" };
+      } }
+  ];
+
+  function renderKpiGroup(containerId, defs, scope){
+    document.getElementById(containerId).innerHTML = defs.map(function(def){
+      var r = scope==="all" ? def.all() : def.point(scope);
+      return '<div class="card kpi">' +
+        '<div class="label">'+(r.label||def.label)+'</div>' +
+        '<div class="value">'+r.value+'</div>' +
+        '<div class="delta '+r.cls+'">'+r.delta+'</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderKpis(){
+    var scope = kpiPoint==="all" ? "all" : puntosAdmin.find(function(p){ return p.name===kpiPoint; });
+    renderKpiGroup("kpi-grid-ventas", kpiVentasDefs, scope);
+    renderKpiGroup("kpi-grid-stock", kpiStockDefs, scope);
+  }
+  renderKpis();
+
+  document.getElementById("kpi-point-filter").addEventListener("change", function(e){
+    kpiPoint = e.target.value;
+    renderKpis();
+  });
+
+  function renderMap(){
+    document.getElementById("map-canvas").innerHTML = puntosAdmin.map(function(p){
+      return '<div class="map-dot" data-level="'+p.level+'" title="'+p.name+' — stock '+p.stock+'" style="left:'+p.x+'%; top:'+p.y+'%;"></div>';
+    }).join('');
+  }
+  renderMap();
+
+  var levelColor = {alto:"var(--ok)", medio:"var(--warn)", bajo:"var(--danger)"};
+
+  // ---------- tabla de puntos, ordenable ----------
+  var tableCols = [
+    {key:"name", label:"Punto", type:"text"},
+    {key:"type", label:"Tipo", type:"text"},
+    {key:"city", label:"Ciudad", type:"text"},
+    {key:"stock", label:"Stock", type:"num"},
+    {key:"instalaciones", label:"Instal. (mes)", type:"num"},
+    {key:"ingresos", label:"Ingresos", type:"num"},
+    {key:"trazabilidad", label:"Trazabilidad", type:"num"},
+    {key:"level", label:"Estado", type:"text"}
+  ];
+  var sortKey = "instalaciones", sortDir = -1;
+
+  function renderAdminTableHead(){
+    document.getElementById("admin-table-head").innerHTML = tableCols.map(function(c){
+      var active = c.key===sortKey;
+      var arrow = active ? (sortDir===1?"▲":"▼") : "▲";
+      return '<th class="sortable'+(active?' active':'')+'" data-sort="'+c.key+'">'+c.label+'<span class="arrow">'+arrow+'</span></th>';
+    }).join('');
+  }
+
+  function renderAdminTableBody(){
+    var rows = puntosAdmin.slice().sort(function(a,b){
+      var av=a[sortKey], bv=b[sortKey];
+      if(typeof av==="string"){ return av.localeCompare(bv) * sortDir; }
+      return (av-bv) * sortDir;
+    });
+    document.getElementById("admin-table").innerHTML = rows.map(function(p){
+      return '<tr><td><b>'+p.name+'</b></td><td>'+p.type+'</td><td>'+p.city+'</td>' +
+        '<td style="font-variant-numeric:tabular-nums;">'+p.stock+' / 10</td>' +
+        '<td style="font-variant-numeric:tabular-nums;">'+p.instalaciones+'</td>' +
+        '<td style="font-variant-numeric:tabular-nums;">'+p.ingresos.toLocaleString('es-ES')+' €</td>' +
+        '<td style="font-variant-numeric:tabular-nums;">'+p.trazabilidad.toFixed(1)+'%</td>' +
+        '<td><span class="est-dot" style="background:'+levelColor[p.level]+'"></span>'+
+        (p.level==="alto"?"Saludable":p.level==="medio"?"Vigilar":"Urgente")+'</td></tr>';
+    }).join('');
+  }
+
+  renderAdminTableHead();
+  renderAdminTableBody();
+
+  document.getElementById("admin-table-head").addEventListener("click", function(e){
+    var th = e.target.closest("[data-sort]");
+    if(!th) return;
+    var key = th.dataset.sort;
+    if(key===sortKey){ sortDir = -sortDir; } else { sortKey = key; sortDir = -1; }
+    renderAdminTableHead();
+    renderAdminTableBody();
+  });
+
+  // ---------- alertas ----------
+  var alerts = [
+    {sev:"critical", text:"<b>Punto Gràcia</b> tiene stock crítico (1 batería) y la tasa de trazabilidad más baja de la red (82.3%).", meta:"Barcelona · revisar hoy"},
+    {sev:"critical", text:"<b>2 puntos</b> están por debajo de 3 unidades de stock — riesgo de no poder atender reservas confirmadas.", meta:"Punto Gràcia, Punto Este Volta"},
+    {sev:"warning", text:"<b>7 recompras</b> llevan más de 5 días solicitadas sin recoger.", meta:"12 recompras pendientes en total"},
+    {sev:"warning", text:"Hay <b>3 walk-in</b> marcados como urgentes hace más de 2 horas sin confirmar instalación.", meta:"Gruas Triana 24h, Taller Eixample"},
+    {sev:"warning", text:"<b>Punto Este Volta</b> no registra ninguna instalación en los últimos 7 días.", meta:"Sevilla · posible punto inactivo"}
+  ];
+  document.getElementById("alerts-list").innerHTML = alerts.map(function(a){
+    return '<div class="alert-item"><span class="alert-sev '+a.sev+'"></span>' +
+      '<div><div class="alert-text">'+a.text+'</div><div class="alert-meta">'+a.meta+'</div></div></div>';
+  }).join('');
+
+  // ---------- gráfico de tendencia: reservas por día (citas vs walk-in), filtrable por punto y periodo ----------
+  function pastDays(n){
+    var out = [];
+    for(var i=n-1;i>=0;i--){
+      var d = new Date();
+      d.setDate(d.getDate()-i);
+      out.push({ label:d.getDate()+"/"+(d.getMonth()+1) });
+    }
+    return out;
+  }
+
+  function hashSeed(str){
+    var h = 7;
+    for(var i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) % 100000; }
+    return h + 1;
+  }
+  function seededRandom(seed){
+    var s = seed % 2147483647;
+    if(s <= 0) s += 2147483646;
+    return function(){ s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+  }
+  function genDayArray(n, base, amp, seed){
+    var rand = seededRandom(seed);
+    var arr = [];
+    for(var i=0;i<n;i++){
+      var trend = base + (i/(n-1)) * amp * 0.5;
+      var noise = (rand() - 0.5) * amp * 0.6;
+      arr.push(Math.max(0, Math.round(trend + noise)));
+    }
+    return arr;
+  }
+
+  var MAX_RANGE = 30;
+  var totalCitas30  = genDayArray(MAX_RANGE, 24, 16, 7001);
+  var totalWalkin30 = genDayArray(MAX_RANGE, 9, 10, 8002);
+
+  var perPointSeries = {};
+  puntosAdmin.forEach(function(p){
+    var dailyAvg = p.instalaciones / 30;
+    perPointSeries[p.name] = {
+      citas:  genDayArray(MAX_RANGE, dailyAvg*0.72, Math.max(2, dailyAvg*0.9), hashSeed(p.name+"c")),
+      walkin: genDayArray(MAX_RANGE, dailyAvg*0.28, Math.max(2, dailyAvg*0.6), hashSeed(p.name+"w"))
+    };
+  });
+
+  var trendLegend = [
+    {key:"citas", label:"Citas", color:"var(--chart-1)"},
+    {key:"walkin", label:"Walk-in", color:"var(--chart-2)"}
+  ];
+  document.getElementById("trend-legend").innerHTML = trendLegend.map(function(l){
+    return '<span class="sw"><i style="background:'+l.color+'"></i>'+l.label+'</span>';
+  }).join('');
+
+  document.getElementById("trend-point-filter").innerHTML =
+    '<option value="all">Todos los puntos</option>' +
+    puntosAdmin.map(function(p){ return '<option value="'+p.name+'">'+p.name+'</option>'; }).join('');
+
+  var trendPoint = "all", trendRange = 14, trendShowTable = false;
+
+  function currentTrendData(){
+    if(trendPoint==="all"){
+      return { citas: totalCitas30.slice(-trendRange), walkin: totalWalkin30.slice(-trendRange) };
+    }
+    var pd = perPointSeries[trendPoint];
+    return { citas: pd.citas.slice(-trendRange), walkin: pd.walkin.slice(-trendRange) };
+  }
+
+  var VB_W = 640, VB_H = 210, PAD_L = 6, PAD_R = 6, PLOT_TOP = 12, PLOT_BOTTOM = 176, LABEL_Y = 200;
+
+  function renderTrend(){
+    var trendDays = pastDays(trendRange);
+    var data = currentTrendData();
+    var citasData = data.citas, walkinData = data.walkin;
+    var n = trendRange;
+    var maxVal = Math.ceil(Math.max.apply(null, citasData.concat(walkinData)) * 1.18 / 5) * 5 || 5;
+
+    document.getElementById("trend-sub").textContent =
+      (trendPoint==="all" ? "Citas frente a walk-in, red completa" : "Citas frente a walk-in — "+trendPoint) +
+      " · últimos "+trendRange+" días";
+
+    function xAt(i){ return PAD_L + i * ((VB_W - PAD_L - PAD_R) / (n - 1)); }
+    function yAt(v){ return PLOT_BOTTOM - (v / maxVal) * (PLOT_BOTTOM - PLOT_TOP); }
+    function seriesPath(dat){
+      return dat.map(function(v,i){ return (i===0?'M':'L') + xAt(i).toFixed(1) + ',' + yAt(v).toFixed(1); }).join(' ');
+    }
+    function areaPath(dat){
+      return seriesPath(dat) + ' L' + xAt(n-1).toFixed(1) + ',' + PLOT_BOTTOM + ' L' + xAt(0).toFixed(1) + ',' + PLOT_BOTTOM + ' Z';
+    }
+
+    var gridLines = [0, 0.5, 1].map(function(f){
+      var y = PLOT_TOP + f * (PLOT_BOTTOM - PLOT_TOP);
+      return '<line x1="'+PAD_L+'" x2="'+(VB_W-PAD_R)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="var(--line)" stroke-width="1" />';
+    }).join('');
+
+    var labelIdx = n <= 8 ? trendDays.map(function(_,i){return i;}) : [0, Math.round((n-1)/2), n-1];
+    var axisLabels = labelIdx.map(function(i){
+      return '<text x="'+xAt(i).toFixed(1)+'" y="'+LABEL_Y+'" font-size="9.5" fill="var(--ink-soft)" text-anchor="'+(i===0?'start':i===n-1?'end':'middle')+'">'+trendDays[i].label+'</text>';
+    }).join('');
+
+    var lastCitas = citasData[n-1], lastWalkin = walkinData[n-1];
+
+    document.getElementById("trend-svg-container").innerHTML =
+      '<svg class="trend-svg" id="trend-svg" viewBox="0 0 '+VB_W+' '+VB_H+'" role="img" aria-label="Reservas por día, citas frente a walk-in">' +
+        gridLines +
+        '<path d="'+areaPath(citasData)+'" fill="var(--chart-1)" style="opacity:.12" stroke="none" />' +
+        '<path d="'+areaPath(walkinData)+'" fill="var(--chart-2)" style="opacity:.12" stroke="none" />' +
+        '<path d="'+seriesPath(citasData)+'" fill="none" stroke="var(--chart-1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />' +
+        '<path d="'+seriesPath(walkinData)+'" fill="none" stroke="var(--chart-2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />' +
+        '<circle cx="'+xAt(n-1).toFixed(1)+'" cy="'+yAt(lastCitas).toFixed(1)+'" r="4" fill="var(--chart-1)" stroke="var(--surface)" stroke-width="1.5" />' +
+        '<circle cx="'+xAt(n-1).toFixed(1)+'" cy="'+yAt(lastWalkin).toFixed(1)+'" r="4" fill="var(--chart-2)" stroke="var(--surface)" stroke-width="1.5" />' +
+        '<text x="'+(xAt(n-1)+8).toFixed(1)+'" y="'+(yAt(lastCitas)+3.5).toFixed(1)+'" font-size="11" font-weight="700" fill="var(--chart-1)">'+lastCitas+'</text>' +
+        '<text x="'+(xAt(n-1)+8).toFixed(1)+'" y="'+(yAt(lastWalkin)+3.5).toFixed(1)+'" font-size="11" font-weight="700" fill="var(--chart-2)">'+lastWalkin+'</text>' +
+        '<line id="trend-crosshair" x1="0" x2="0" y1="'+PLOT_TOP+'" y2="'+PLOT_BOTTOM+'" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2,3" opacity="0" />' +
+        axisLabels +
+      '</svg>';
+
+    document.getElementById("trend-table-body").innerHTML = trendDays.map(function(d,i){
+      return '<tr><td>'+d.label+'</td><td style="font-variant-numeric:tabular-nums;">'+citasData[i]+'</td>' +
+        '<td style="font-variant-numeric:tabular-nums;">'+walkinData[i]+'</td>' +
+        '<td style="font-variant-numeric:tabular-nums;">'+(citasData[i]+walkinData[i])+'</td></tr>';
+    }).join('');
+
+    var trendSvg = document.getElementById("trend-svg");
+    var trendTooltip = document.getElementById("trend-tooltip");
+    var trendCrosshair = document.getElementById("trend-crosshair");
+
+    trendSvg.addEventListener("mousemove", function(evt){
+      var rect = trendSvg.getBoundingClientRect();
+      var scaleX = VB_W / rect.width;
+      var xInVb = (evt.clientX - rect.left) * scaleX;
+      var idx = Math.round((xInVb - PAD_L) / ((VB_W - PAD_L - PAD_R) / (n - 1)));
+      idx = Math.max(0, Math.min(n-1, idx));
+      var xPix = (xAt(idx) / VB_W) * rect.width;
+      trendCrosshair.setAttribute("x1", xAt(idx).toFixed(1));
+      trendCrosshair.setAttribute("x2", xAt(idx).toFixed(1));
+      trendCrosshair.setAttribute("opacity", "1");
+      trendTooltip.style.opacity = "1";
+      trendTooltip.style.left = xPix + "px";
+      trendTooltip.style.top = ((yAt(Math.max(citasData[idx],walkinData[idx])) / VB_H) * rect.height) + "px";
+      trendTooltip.innerHTML = trendDays[idx].label + '<br>Citas: <b>'+citasData[idx]+'</b> · Walk-in: <b>'+walkinData[idx]+'</b>';
+    });
+    trendSvg.addEventListener("mouseleave", function(){
+      trendCrosshair.setAttribute("opacity", "0");
+      trendTooltip.style.opacity = "0";
+    });
+
+    document.getElementById("trend-table-wrap").style.display = trendShowTable ? "block" : "none";
+    document.getElementById("trend-wrap").style.display = trendShowTable ? "none" : "block";
+  }
+
+  renderTrend();
+
+  document.getElementById("trend-point-filter").addEventListener("change", function(e){
+    trendPoint = e.target.value;
+    renderTrend();
+  });
+  document.getElementById("trend-range-filter").addEventListener("change", function(e){
+    trendRange = Number(e.target.value);
+    renderTrend();
+  });
+  document.getElementById("trend-toggle").addEventListener("click", function(){
+    trendShowTable = !trendShowTable;
+    this.textContent = trendShowTable ? "Ver como gráfico" : "Ver como tabla";
+    renderTrend();
+  });
+
+  // ===================== abrir alta de punto en página aparte =====================
+  document.getElementById("open-register-btn").addEventListener("click", function(){
+    window.location.href = "registro-punto.html";
+  });
+
+  if(sessionStorage.getItem("volta_punto_recien_registrado")){
+    var nombreNuevo = sessionStorage.getItem("volta_punto_recien_registrado");
+    sessionStorage.removeItem("volta_punto_recien_registrado");
+    document.getElementById("register-confirm-box").innerHTML =
+      '<div class="register-confirm">✓ <b>'+nombreNuevo+'</b> registrado correctamente. Ya aparece en el mapa, la tabla y los filtros de abajo.</div>';
+  }
+})();
+</script>

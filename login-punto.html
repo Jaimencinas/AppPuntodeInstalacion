@@ -1,0 +1,214 @@
+<meta charset="UTF-8">
+<title>Acceso de puntos de instalación — Volta Baterías</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D0D0D;
+    --surface:#171717;
+    --surface-2:#212121;
+    --ink:#F5F5F5;
+    --ink-soft:#A8A8A8;
+    --line:#333333;
+    --brand:#E8593F;
+    --accent:#FF6A2E;
+    --accent-ink:#1A0D0B;
+    --accent-soft:#3C1F14;
+    --danger:#D9807C;
+    --danger-soft:#3A2422;
+    --radius:8px;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 20px 48px -20px rgba(0,0,0,.6);
+    --font-display: 'Barlow Condensed', Impact, "Arial Black", sans-serif;
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1100px 520px at 50% -10%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'DM Sans', ui-sans-serif, "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:28px 20px;
+  }
+
+  .login-wrap{ width:100%; max-width:400px; }
+  .brand-row{ display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:28px; }
+  .logo-badge{ width:34px; height:34px; border-radius:9px; flex-shrink:0; background:#FFFFFF;
+    box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; }
+  .wordmark{ display:flex; flex-direction:column; line-height:1; gap:1px; }
+  .wordmark .w-top{ font-family:var(--font-display); font-weight:800; font-size:22px; letter-spacing:.01em;
+    text-transform:uppercase; color:var(--ink); }
+  .wordmark .w-bottom{ font-family:'DM Sans',sans-serif; font-weight:700; font-size:9.5px; letter-spacing:.16em;
+    color:var(--brand); text-transform:uppercase; }
+
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:28px 26px;
+  }
+  h1{ font-family:var(--font-display); font-weight:800; letter-spacing:.01em; text-transform:uppercase;
+    font-size:22px; margin:0 0 6px; text-align:center; }
+  .sub{ font-size:13px; color:var(--ink-soft); text-align:center; margin:0 0 26px; line-height:1.5; }
+
+  .field{ display:flex; flex-direction:column; gap:5px; margin-bottom:16px; }
+  .field label{ font-size:11.5px; color:var(--ink-soft); font-weight:600; }
+  .field input, .field select{
+    border:1px solid var(--line); border-radius:7px; padding:11px 12px; font-size:13.5px;
+    background:var(--surface-2); color:var(--ink); font-family:inherit; width:100%;
+  }
+  .field input:focus-visible, .field select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .field .hint{ font-size:11px; color:var(--ink-soft); }
+  .field.error input, .field.error select{ border-color:var(--danger); }
+  .form-error{
+    display:none; font-size:12.5px; color:var(--danger); background:var(--danger-soft);
+    border:1px solid color-mix(in srgb, var(--danger) 35%, transparent); border-radius:7px;
+    padding:9px 11px; margin-bottom:14px;
+  }
+  .form-error.show{ display:block; }
+
+  .primary-btn{
+    width:100%; background:var(--accent); color:var(--accent-ink); border:0; border-radius:6px;
+    padding:13px 14px; font-weight:800; font-size:13px; cursor:pointer; font-family:inherit;
+    text-transform:uppercase; letter-spacing:.03em; margin-top:6px;
+  }
+  .primary-btn:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+  .ghost-btn{
+    background:transparent; color:var(--ink-soft); border:1px solid var(--line); border-radius:6px;
+    padding:0 14px; font-weight:700; font-size:11.5px; cursor:pointer; font-family:inherit;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .ghost-btn:hover{ color:var(--accent); border-color:var(--accent); }
+
+  .demo-note{
+    margin-top:16px; font-size:11.5px; color:var(--ink-soft); background:var(--surface-2);
+    border-radius:7px; padding:10px 11px; line-height:1.5;
+  }
+  .demo-note b{ color:var(--ink); }
+
+  .foot-links{ margin-top:22px; text-align:center; font-size:12.5px; color:var(--ink-soft); }
+  .foot-links a{ color:var(--ink-soft); font-weight:600; text-decoration:none; border-bottom:1px solid var(--line); }
+  .foot-links a:hover{ color:var(--accent); border-color:var(--accent); }
+  .foot-links .sep{ margin:0 8px; opacity:.5; }
+</style>
+
+<div class="login-wrap">
+  <div class="brand-row">
+    <span class="logo-badge">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="#E8501A"/></svg>
+    </span>
+    <div class="wordmark"><span class="w-top">Volta</span><span class="w-bottom">Baterías</span></div>
+  </div>
+
+  <div class="card">
+    <h1>Acceso de puntos</h1>
+    <p class="sub">Entra en el panel de tu punto de instalación para ver tu agenda, tu stock y tus métricas.</p>
+
+    <div class="form-error" id="form-error"></div>
+
+    <form id="login-form" novalidate>
+      <div class="field" id="f-punto-wrap">
+        <label for="lp-email">Correo electrónico de tu punto</label>
+        <input id="lp-email" type="email" placeholder="tuputno@ejemplo.es" autocomplete="username" />
+      </div>
+      <div class="field" id="f-clave-wrap">
+        <label for="lp-clave">Contraseña</label>
+        <div style="display:flex; gap:6px;">
+          <input id="lp-clave" type="password" placeholder="••••••••" style="flex:1;" />
+          <button type="button" class="ghost-btn" id="toggle-clave" style="flex-shrink:0;">Ver</button>
+        </div>
+      </div>
+      <button type="submit" class="primary-btn">Entrar</button>
+    </form>
+
+    <div class="demo-note">Prototipo de demostración — ejemplo de acceso: <b>taller.nervion@volta-demo.es</b> / <b>volta2026</b>. Los puntos dados de alta desde el panel de administración inician sesión con el email y la contraseña que se les asignó al registrarlos.</div>
+  </div>
+
+  <div class="foot-links">
+    <a href="panel-admin.html">Acceso Admin Volta</a>
+    <span class="sep">·</span>
+    <a href="registro-punto.html">Registrar un punto nuevo</a>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var NEW_KEY = "volta_puntos_nuevos";
+  var SESSION_KEY = "volta_punto_activo";
+  var DEMO_PASSWORD = "volta2026";
+
+  var basePuntos = [
+    {name:"Taller Nervión", city:"Sevilla", type:"Taller", stock:7, email:"taller.nervion@volta-demo.es"},
+    {name:"Gruas Triana 24h", city:"Sevilla", type:"Gruista", stock:4, email:"gruas.triana@volta-demo.es"},
+    {name:"Punto Este Volta", city:"Sevilla", type:"Personal propio", stock:2, email:"punto.este@volta-demo.es"},
+    {name:"Taller Malasaña", city:"Madrid", type:"Taller", stock:9, email:"taller.malasana@volta-demo.es"},
+    {name:"Gruas Centro", city:"Madrid", type:"Gruista", stock:6, email:"gruas.centro@volta-demo.es"},
+    {name:"Taller Eixample", city:"Barcelona", type:"Taller", stock:3, email:"taller.eixample@volta-demo.es"},
+    {name:"Punto Gràcia", city:"Barcelona", type:"Personal propio", stock:1, email:"punto.gracia@volta-demo.es"},
+    {name:"Taller Ruzafa", city:"Valencia", type:"Taller", stock:8, email:"taller.ruzafa@volta-demo.es"},
+    {name:"Gruas Bilbao Norte", city:"Bilbao", type:"Gruista", stock:5, email:"gruas.bilbao@volta-demo.es"}
+  ];
+
+  function loadNuevos(){
+    try{ return JSON.parse(localStorage.getItem(NEW_KEY)) || []; }
+    catch(e){ return []; }
+  }
+
+  var nuevos = loadNuevos();
+  var allPuntos = basePuntos.concat(nuevos.map(function(p){
+    return {name:p.name, city:p.city, type:p.type, clave:p.clave, stock:p.stock, email:p.email};
+  }));
+
+  function showError(msg){
+    var box = document.getElementById("form-error");
+    box.textContent = msg;
+    box.classList.add("show");
+  }
+  function clearError(){
+    document.getElementById("form-error").classList.remove("show");
+    document.getElementById("f-clave-wrap").classList.remove("error");
+    document.getElementById("f-punto-wrap").classList.remove("error");
+  }
+
+  document.getElementById("login-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    clearError();
+
+    var email = document.getElementById("lp-email").value.trim().toLowerCase();
+    var clave = document.getElementById("lp-clave").value.trim();
+    var punto = allPuntos.find(function(p){ return (p.email||"").toLowerCase() === email; });
+
+    if(!email){ document.getElementById("f-punto-wrap").classList.add("error"); showError("Escribe el correo electrónico de tu punto."); return; }
+    if(!punto){
+      document.getElementById("f-punto-wrap").classList.add("error");
+      showError("No encontramos ningún punto registrado con ese correo.");
+      return;
+    }
+
+    var esValida = punto.clave
+      ? clave === punto.clave.trim()
+      : clave.toLowerCase() === DEMO_PASSWORD;
+    if(!clave || !esValida){
+      document.getElementById("f-clave-wrap").classList.add("error");
+      showError("Contraseña incorrecta para " + punto.name + ".");
+      return;
+    }
+
+    var sessionData = JSON.stringify({name:punto.name, city:punto.city, type:punto.type, stock:punto.stock});
+    sessionStorage.setItem(SESSION_KEY, sessionData);
+    localStorage.setItem(SESSION_KEY, sessionData);
+    window.location.href = "panel-punto.html";
+  });
+
+  document.getElementById("toggle-clave").addEventListener("click", function(){
+    var input = document.getElementById("lp-clave");
+    var showing = input.type === "text";
+    input.type = showing ? "password" : "text";
+    this.textContent = showing ? "Ver" : "Ocultar";
+  });
+})();
+</script>

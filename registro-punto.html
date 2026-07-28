@@ -1,0 +1,325 @@
+<meta charset="UTF-8">
+<title>Registrar punto de instalación — Volta Baterías</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F5F5;
+    --surface:#FFFFFF;
+    --surface-2:#F5F5F5;
+    --ink:#1A1A1A;
+    --ink-soft:#6B6B6B;
+    --line:#E4E4E4;
+    --brand:#D63B2F;
+    --accent:#E8501A;
+    --accent-ink:#FFFFFF;
+    --accent-soft:#FBE2D8;
+    --ok:#1E7A44;
+    --ok-soft:#E1F0E5;
+    --danger:#8F2A24;
+    --danger-soft:#F3E1DE;
+    --radius:6px;
+    --shadow: 0 1px 2px rgba(13,13,13,.06), 0 8px 24px -12px rgba(13,13,13,.20);
+    --font-display: 'Barlow Condensed', Impact, "Arial Black", sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0D0D0D; --surface:#171717; --surface-2:#212121; --ink:#F5F5F5; --ink-soft:#A8A8A8;
+      --line:#333333; --brand:#E8593F; --accent:#FF6A2E; --accent-ink:#1A0D0B; --accent-soft:#3C1F14;
+      --ok:#57B37F; --ok-soft:#1B2E22; --danger:#D9807C; --danger-soft:#3A2422;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+      color-scheme: dark;
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'DM Sans', ui-sans-serif, "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  .wrap{ max-width:820px; margin:0 auto; padding:28px 20px 80px; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    padding-bottom:20px; margin-bottom:24px; border-bottom:1px solid var(--line); }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .logo-badge{ width:30px; height:30px; border-radius:8px; flex-shrink:0; background:#FFFFFF;
+    border:1px solid var(--line); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; }
+  .wordmark{ display:flex; flex-direction:column; line-height:1; gap:1px; }
+  .wordmark .w-top{ font-family:var(--font-display); font-weight:800; font-size:20px; letter-spacing:.01em;
+    text-transform:uppercase; color:var(--ink); }
+  .wordmark .w-bottom{ font-family:'DM Sans',sans-serif; font-weight:700; font-size:8.5px; letter-spacing:.16em;
+    color:var(--brand); text-transform:uppercase; }
+  .back-link{ font-size:12.5px; color:var(--ink-soft); text-decoration:none; font-weight:600; }
+  .back-link:hover{ color:var(--accent); }
+
+  h1,h2,h3{ font-family:var(--font-display); font-weight:800; letter-spacing:.01em; text-transform:uppercase;
+    margin:0; line-height:1.05; }
+  .page-head p{ margin:6px 0 0; color:var(--ink-soft); font-size:14px; max-width:64ch; }
+  .page-head h2{ font-size:24px; }
+
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
+  .form-card{ padding:24px; margin-top:22px; }
+
+  .section-label{ font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--brand);
+    font-weight:700; margin:0 0 12px; }
+  .section-label.spaced{ margin-top:28px; }
+
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:14px 16px; }
+  @media (max-width:640px){ .grid2{ grid-template-columns:1fr; } }
+
+  .field{ display:flex; flex-direction:column; gap:4px; margin-bottom:14px; }
+  .field label{ font-size:11.5px; color:var(--ink-soft); font-weight:600; }
+  .field .hint{ font-size:11px; color:var(--ink-soft); }
+  .field input, .field select, .field textarea{
+    border:1px solid var(--line); border-radius:7px; padding:10px 11px; font-size:13.5px;
+    background:var(--surface); color:var(--ink); font-family:inherit; width:100%;
+  }
+  .field textarea{ resize:vertical; min-height:88px; line-height:1.5; }
+  .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible{
+    outline:2px solid var(--accent); outline-offset:1px;
+  }
+  .field.error input, .field.error select{ border-color:var(--danger); }
+  .field .err-msg{ font-size:11px; color:var(--danger); display:none; }
+  .field.error .err-msg{ display:block; }
+
+  .primary-btn{
+    background:var(--accent); color:var(--accent-ink); border:0; border-radius:6px;
+    padding:12px 20px; font-weight:800; font-size:13px; cursor:pointer; font-family:inherit;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .primary-btn:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+  .ghost-btn{
+    background:transparent; color:var(--ink-soft); border:1px solid var(--line); border-radius:6px;
+    padding:11px 18px; font-weight:700; font-size:12px; cursor:pointer; font-family:inherit;
+    text-transform:uppercase; letter-spacing:.03em; text-decoration:none; display:inline-flex; align-items:center;
+  }
+
+  .form-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+
+  .confirm-screen{ text-align:center; padding:48px 24px; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .checkmark{ width:52px; height:52px; border-radius:50%; background:var(--ok-soft); color:var(--ok);
+    display:flex; align-items:center; justify-content:center; font-size:26px; }
+  .confirm-screen h2{ font-size:22px; }
+  .confirm-screen p{ color:var(--ink-soft); font-size:14px; max-width:48ch; margin:0; }
+  .confirm-actions{ display:flex; gap:10px; margin-top:10px; }
+
+  #register-form{ display:none; }
+  #register-form.active{ display:block; }
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo-badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="#E8501A"/></svg>
+      </span>
+      <div class="wordmark"><span class="w-top">Volta</span><span class="w-bottom">Baterías</span></div>
+    </div>
+    <a class="back-link" href="panel-admin.html">← Volver al panel de administración</a>
+  </div>
+
+  <div class="page-head">
+    <h2>Registrar punto de instalación</h2>
+    <p>Alta completa de un taller, gruista o punto propio en la red Volta. Estos datos configuran cómo aparece el punto en el panel de administración y son los que usará el punto para iniciar sesión en su propio panel.</p>
+  </div>
+
+  <div class="card form-card">
+    <form id="register-form" class="active" novalidate>
+      <div class="section-label">Datos generales</div>
+      <div class="grid2">
+        <div class="field" id="f-nombre-wrap">
+          <label for="rp-nombre">Nombre del punto *</label>
+          <input id="rp-nombre" placeholder="Taller Poniente" />
+          <span class="err-msg">Indica el nombre del punto.</span>
+        </div>
+        <div class="field">
+          <label for="rp-tipo">Tipo de punto</label>
+          <select id="rp-tipo">
+            <option value="Taller">Taller</option>
+            <option value="Gruista">Gruista</option>
+            <option value="Personal propio">Personal propio</option>
+          </select>
+        </div>
+        <div class="field" id="f-ciudad-wrap">
+          <label for="rp-ciudad">Ciudad *</label>
+          <input id="rp-ciudad" placeholder="Zaragoza" />
+          <span class="err-msg">Indica la ciudad.</span>
+        </div>
+        <div class="field">
+          <label for="rp-cp">Código postal</label>
+          <input id="rp-cp" placeholder="50001" />
+        </div>
+        <div class="field" style="grid-column:1 / -1;">
+          <label for="rp-direccion">Dirección completa</label>
+          <input id="rp-direccion" placeholder="Calle Mayor 12, local 3" />
+        </div>
+      </div>
+
+      <div class="section-label spaced">Contacto</div>
+      <div class="grid2">
+        <div class="field">
+          <label for="rp-responsable">Persona responsable</label>
+          <input id="rp-responsable" placeholder="Nombre y apellidos" />
+        </div>
+        <div class="field">
+          <label for="rp-telefono">Teléfono</label>
+          <input id="rp-telefono" placeholder="976 00 00 00" />
+        </div>
+        <div class="field" id="f-email-wrap" style="grid-column:1 / -1;">
+          <label for="rp-email">Email de contacto *</label>
+          <input id="rp-email" type="email" placeholder="punto@ejemplo.es" />
+          <span class="hint">Este email será el usuario con el que el punto inicia sesión en su panel.</span>
+          <span class="err-msg">Indica un email válido — lo necesita para iniciar sesión.</span>
+        </div>
+      </div>
+
+      <div class="section-label spaced">Operación</div>
+      <div class="grid2">
+        <div class="field">
+          <label for="rp-horario">Horario de atención</label>
+          <input id="rp-horario" placeholder="L–S 9:00–20:00" />
+        </div>
+        <div class="field">
+          <label for="rp-capacidad">Instalaciones/día (capacidad)</label>
+          <input id="rp-capacidad" type="number" min="0" placeholder="8" />
+        </div>
+        <div class="field">
+          <label for="rp-stock">Stock inicial (0–10)</label>
+          <input id="rp-stock" type="number" min="0" max="10" value="5" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="rp-descripcion">Descripción del punto</label>
+        <textarea id="rp-descripcion" placeholder="Especialidades, tipos de vehículo que atiende, equipamiento del taller, notas relevantes para la red..."></textarea>
+      </div>
+      <div class="field">
+        <label for="rp-notas">Notas internas (solo visibles para Volta)</label>
+        <textarea id="rp-notas" placeholder="Condiciones comerciales, incidencias previas, observaciones internas..."></textarea>
+      </div>
+
+      <div class="section-label spaced">Acceso del punto</div>
+      <div class="field">
+        <label for="rp-hint">Estas credenciales las usará el punto para entrar en su panel</label>
+        <span class="hint">Usuario de acceso: el nombre del punto indicado arriba.</span>
+      </div>
+      <div class="grid2">
+        <div class="field" id="f-clave-wrap">
+          <label for="rp-clave">Contraseña de acceso *</label>
+          <input id="rp-clave" type="password" placeholder="Mínimo 4 caracteres" />
+          <span class="err-msg">La contraseña debe tener al menos 4 caracteres.</span>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a class="ghost-btn" href="panel-admin.html">Cancelar</a>
+        <button type="submit" class="primary-btn" id="register-submit">Registrar punto</button>
+      </div>
+    </form>
+
+    <div class="confirm-screen" id="confirm-screen" style="display:none;">
+      <div class="checkmark">✓</div>
+      <h2 id="confirm-title">Punto registrado</h2>
+      <p id="confirm-text">El punto ya aparece en el mapa, la tabla y los filtros del panel de administración, y puede iniciar sesión en su propio panel.</p>
+      <div class="confirm-actions">
+        <a class="ghost-btn" href="login-punto.html">Ir al acceso de puntos</a>
+        <a class="primary-btn" style="text-decoration:none; display:inline-flex; align-items:center;" href="panel-admin.html">Volver al panel de administración</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var STORAGE_KEY = "volta_puntos_nuevos";
+
+  function loadPuntos(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch(e){ return []; }
+  }
+  function savePuntos(list){ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+
+  var baseNombres = ["Taller Nervión","Gruas Triana 24h","Punto Este Volta","Taller Malasaña","Gruas Centro",
+    "Taller Eixample","Punto Gràcia","Taller Ruzafa","Gruas Bilbao Norte"];
+  var baseEmails = ["taller.nervion@volta-demo.es","gruas.triana@volta-demo.es","punto.este@volta-demo.es",
+    "taller.malasana@volta-demo.es","gruas.centro@volta-demo.es","taller.eixample@volta-demo.es",
+    "punto.gracia@volta-demo.es","taller.ruzafa@volta-demo.es","gruas.bilbao@volta-demo.es"];
+
+  document.getElementById("register-form").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    var nombreEl = document.getElementById("rp-nombre");
+    var ciudadEl = document.getElementById("rp-ciudad");
+    var emailEl = document.getElementById("rp-email");
+    var claveEl = document.getElementById("rp-clave");
+    var nombre = nombreEl.value.trim();
+    var ciudad = ciudadEl.value.trim();
+    var email = emailEl.value.trim().toLowerCase();
+    var clave = claveEl.value;
+
+    var puntosExistentes = loadPuntos().map(function(p){ return p.name.toLowerCase(); }).concat(baseNombres.map(function(n){return n.toLowerCase();}));
+    var emailsExistentes = loadPuntos().map(function(p){ return (p.email||"").toLowerCase(); }).concat(baseEmails);
+
+    var valid = true;
+    document.getElementById("f-nombre-wrap").classList.remove("error");
+    document.getElementById("f-ciudad-wrap").classList.remove("error");
+    document.getElementById("f-email-wrap").classList.remove("error");
+    document.getElementById("f-clave-wrap").classList.remove("error");
+
+    if(!nombre || puntosExistentes.indexOf(nombre.toLowerCase()) !== -1){
+      document.getElementById("f-nombre-wrap").classList.add("error");
+      if(nombre) document.querySelector("#f-nombre-wrap .err-msg").textContent = "Ya existe un punto con ese nombre.";
+      valid = false;
+    }
+    if(!ciudad){ document.getElementById("f-ciudad-wrap").classList.add("error"); valid = false; }
+
+    var emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if(!emailValido){
+      document.getElementById("f-email-wrap").classList.add("error");
+      valid = false;
+    } else if(emailsExistentes.indexOf(email) !== -1){
+      document.getElementById("f-email-wrap").classList.add("error");
+      document.querySelector("#f-email-wrap .err-msg").textContent = "Ya hay un punto registrado con ese email.";
+      valid = false;
+    }
+
+    if(!clave || clave.length < 4){ document.getElementById("f-clave-wrap").classList.add("error"); valid = false; }
+    if(!valid) return;
+
+    var stock = Math.max(0, Math.min(10, Number(document.getElementById("rp-stock").value) || 0));
+    var level = stock >= 6 ? "alto" : stock >= 3 ? "medio" : "bajo";
+
+    var nuevo = {
+      name: nombre,
+      type: document.getElementById("rp-tipo").value,
+      city: ciudad,
+      postalCode: document.getElementById("rp-cp").value.trim(),
+      address: document.getElementById("rp-direccion").value.trim(),
+      responsable: document.getElementById("rp-responsable").value.trim(),
+      phone: document.getElementById("rp-telefono").value.trim(),
+      email: document.getElementById("rp-email").value.trim(),
+      hours: document.getElementById("rp-horario").value.trim(),
+      capacidad: Number(document.getElementById("rp-capacidad").value) || 0,
+      stock: stock, level: level,
+      descripcion: document.getElementById("rp-descripcion").value.trim(),
+      notas: document.getElementById("rp-notas").value.trim(),
+      clave: clave,
+      registradoEl: new Date().toISOString()
+    };
+
+    var list = loadPuntos();
+    list.push(nuevo);
+    savePuntos(list);
+    sessionStorage.setItem("volta_punto_recien_registrado", nombre);
+
+    document.getElementById("confirm-title").textContent = nombre + " registrado";
+    document.getElementById("confirm-text").textContent =
+      "Ya aparece en el mapa, la tabla y los filtros del panel de administración. " + nombre + " puede iniciar sesión en su panel con la contraseña indicada.";
+    document.getElementById("register-form").classList.remove("active");
+    document.getElementById("confirm-screen").style.display = "flex";
+  });
+})();
+</script>

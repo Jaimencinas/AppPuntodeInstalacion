@@ -1,0 +1,654 @@
+<meta charset="UTF-8">
+<script>
+(function(){
+  if(!localStorage.getItem("volta_punto_activo")){
+    location.replace("login-punto.html");
+  }
+})();
+</script>
+<title>Mi punto — Volta Baterías</title>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --surface:#FFFFFF;
+    --surface-2:#F5F5F5;
+    --ink:#1A1A1A;
+    --ink-soft:#6B6B6B;
+    --line:#E4E4E4;
+    --brand:#D63B2F;
+    --accent:#E8501A;
+    --accent-ink:#FFFFFF;
+    --accent-soft:#FBE2D8;
+    --ok:#1E7A44;
+    --ok-soft:#E1F0E5;
+    --warn:#A8791F;
+    --warn-soft:#F4EBD6;
+    --pending:#6D6A7C;
+    --pending-soft:#E9E7EF;
+    --danger:#8F2A24;
+    --danger-soft:#F3E1DE;
+    --radius:6px;
+    --shadow: 0 1px 2px rgba(13,13,13,.06), 0 8px 24px -12px rgba(13,13,13,.20);
+    --font-display: 'Barlow Condensed', Impact, "Arial Black", sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0D0D0D; --surface:#171717; --surface-2:#212121; --ink:#F5F5F5; --ink-soft:#A8A8A8;
+      --line:#333333; --brand:#E8593F; --accent:#FF6A2E; --accent-ink:#1A0D0B; --accent-soft:#3C1F14;
+      --ok:#57B37F; --ok-soft:#1B2E22; --warn:#D3A94F; --warn-soft:#3A311D;
+      --pending:#9B97AE; --pending-soft:#2A2833; --danger:#D9807C; --danger-soft:#3A2422;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+      color-scheme: dark;
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'DM Sans', ui-sans-serif, "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; flex-wrap:wrap; padding-bottom:20px; margin-bottom:24px; border-bottom:1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .logo-badge{
+    width:34px; height:34px; border-radius:9px; background:#FFFFFF;
+    border:1px solid var(--line); box-shadow:var(--shadow);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .wordmark{ display:flex; flex-direction:column; line-height:1; gap:1px; }
+  .wordmark .w-top{ font-family:var(--font-display); font-weight:800; font-size:19px; letter-spacing:.01em; color:var(--ink); text-transform:uppercase; }
+  .wordmark .w-bottom{ font-family:'DM Sans',sans-serif; font-weight:700; font-size:9px; letter-spacing:.16em; color:var(--brand); text-transform:uppercase; }
+  .tag{font-size:12.5px; color:var(--ink-soft); font-weight:500; margin-left:6px;}
+  .status-pill{
+    font-size:11px; text-transform:uppercase; letter-spacing:.08em;
+    background:var(--accent-soft); color:var(--accent);
+    padding:4px 10px; border-radius:999px; font-weight:600;
+    border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .session-pill{ display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-soft); font-weight:600; }
+  .session-pill b{ color:var(--ink); }
+  .session-pill .logout-link{
+    color:var(--ink-soft); text-decoration:none; border-bottom:1px solid var(--line);
+    font-size:11.5px; font-weight:600;
+  }
+  .session-pill .logout-link:hover{ color:var(--accent); border-color:var(--accent); }
+
+  h1,h2,h3{ font-family: var(--font-display); font-weight:800; letter-spacing:.01em; text-transform:uppercase; text-wrap:balance; margin:0; line-height:1.05; }
+  .view-head{ margin-bottom:22px; }
+  .view-head h2{ font-size:22px; }
+  .view-head p{ margin:6px 0 0; color:var(--ink-soft); font-size:14px; max-width:60ch; }
+
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
+
+  .field{ display:flex; flex-direction:column; gap:4px; }
+  .field label{ font-size:11.5px; color:var(--ink-soft); font-weight:600; }
+  .field input{
+    border:1px solid var(--line); border-radius:7px; padding:9px 10px; font-size:13px;
+    background:var(--surface); color:var(--ink); font-family:inherit;
+  }
+  .field input:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  .primary-btn{
+    background:var(--accent); color:var(--accent-ink); border:0; border-radius:6px;
+    padding:12px 14px; font-weight:800; font-size:13px; cursor:pointer; font-family:inherit;
+    margin-top:auto; text-transform:uppercase; letter-spacing:.03em;
+  }
+  .primary-btn:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+  .ghost-btn{
+    background:transparent; color:var(--ink-soft); border:1px solid var(--line); border-radius:6px;
+    padding:10px 14px; font-weight:700; font-size:12px; cursor:pointer; font-family:inherit;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+
+  .punto-shell{ display:grid; grid-template-columns:1fr 280px; gap:20px; }
+  @media (max-width:900px){ .punto-shell{ grid-template-columns:1fr; } }
+
+  .agenda-card{ padding:18px 18px 8px; }
+  .agenda-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .agenda-head h3{ font-size:16px; }
+  .agenda-head .date{ font-size:12.5px; color:var(--ink-soft); font-family: ui-monospace, "SF Mono", monospace; }
+
+  .res-row{
+    display:grid; grid-template-columns:64px 1fr auto auto; align-items:center; gap:12px;
+    padding:12px 4px; border-top:1px solid var(--line);
+  }
+  .res-row:first-of-type{ border-top:none; }
+  .res-time{ font-family: ui-monospace, "SF Mono", monospace; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .res-time.walkin{ color:var(--accent); }
+  .res-main .cliente{ font-weight:600; font-size:13.5px; }
+  .res-main .veh{ font-size:12px; color:var(--ink-soft); font-family: ui-monospace, "SF Mono", monospace; }
+  .chip{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; font-weight:700;
+    padding:3px 8px; border-radius:999px; white-space:nowrap;
+  }
+  .chip.pendiente{ background:var(--pending-soft); color:var(--pending); }
+  .chip.confirmada{ background:var(--warn-soft); color:var(--warn); }
+  .chip.completada{ background:var(--ok-soft); color:var(--ok); }
+  .chip.walkin{ background:var(--accent-soft); color:var(--accent); }
+  .row-btn{
+    border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:7px;
+    padding:6px 10px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  .row-btn:hover{ border-color:var(--accent); color:var(--accent); }
+
+  .side-card{ padding:16px; display:flex; flex-direction:column; gap:14px; }
+  .side-card h4{ font-size:12.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-soft); font-weight:700; }
+  .stock-bar-wrap{ display:flex; align-items:center; gap:10px; }
+  .stock-bar{ flex:1; height:8px; border-radius:999px; background:var(--surface-2); overflow:hidden; }
+  .stock-bar > i{ display:block; height:100%; background:var(--ok); }
+  .stock-num{ font-family: ui-monospace, "SF Mono", monospace; font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .recompra-alert{
+    background:var(--warn-soft); border:1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+    border-radius:8px; padding:10px 12px; font-size:12.5px; color:var(--ink);
+  }
+  .recompra-alert b{ color:var(--warn); }
+
+  .order-card{ padding:18px; margin-top:20px; }
+  .order-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:4px; }
+  .order-head h3{ font-size:16px; }
+  .order-head p{ margin:4px 0 0; font-size:12.5px; color:var(--ink-soft); max-width:56ch; }
+
+  .battery-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:16px; }
+  @media (max-width:760px){ .battery-grid{ grid-template-columns:1fr; } }
+  .battery-card{
+    border:1px solid var(--line); border-radius:9px; padding:14px; display:flex; flex-direction:column; gap:8px;
+    background:var(--surface);
+  }
+  .battery-card .sku{ font-family:ui-monospace,"SF Mono",monospace; font-size:16px; font-weight:700; letter-spacing:.01em; }
+  .battery-card .desc{ font-size:12px; color:var(--ink-soft); line-height:1.5; flex:1; }
+  .battery-card .price{ font-size:11.5px; color:var(--ink-soft); }
+  .battery-card .price b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+
+  .qty-control{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px; }
+  .qty-btn{
+    width:28px; height:28px; border-radius:7px; border:1px solid var(--line); background:var(--surface);
+    cursor:pointer; font-weight:700; font-size:15px; display:flex; align-items:center; justify-content:center;
+    color:var(--ink); font-family:inherit; line-height:1;
+  }
+  .qty-btn:hover{ border-color:var(--accent); color:var(--accent); }
+  .qty-num{ font-variant-numeric:tabular-nums; font-weight:700; font-size:14px; min-width:22px; text-align:center; }
+
+  .order-summary{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+    margin-top:18px; padding-top:14px; border-top:1px solid var(--line);
+  }
+  .order-summary .total{ font-size:12.5px; color:var(--ink-soft); }
+  .order-summary .total b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+  .order-confirm{
+    display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ok);
+    background:var(--ok-soft); border:1px solid color-mix(in srgb, var(--ok) 35%, transparent);
+    border-radius:8px; padding:10px 12px; margin-top:14px;
+  }
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(20,18,15,.45); display:none;
+    align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal{
+    background:var(--surface); border-radius:12px; max-width:420px; width:100%;
+    padding:22px; box-shadow:var(--shadow); border:1px solid var(--line);
+  }
+  .modal h3{ font-size:17px; margin-bottom:4px; }
+  .modal .sub{ font-size:12.5px; color:var(--ink-soft); margin-bottom:16px; }
+  .serial-list{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; max-height:180px; overflow-y:auto; }
+  .serial-item{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    border:1px solid var(--line); border-radius:7px; padding:8px 10px; cursor:pointer; font-size:12.5px;
+  }
+  .serial-item.selected{ border-color:var(--accent); background:var(--accent-soft); }
+  .serial-item .sn{ font-family:ui-monospace,"SF Mono",monospace; font-weight:600; }
+  .serial-item .age{ color:var(--ink-soft); font-size:11px; }
+  .modal-actions{ display:flex; gap:8px; justify-content:flex-end; }
+
+  .modal-step-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--brand); font-weight:700; margin-bottom:6px; }
+  .photo-explain{
+    font-size:12.5px; line-height:1.55; color:var(--ink-soft); background:var(--surface-2);
+    border-radius:8px; padding:10px 12px; margin-bottom:14px;
+  }
+  .photo-explain b{ color:var(--ink); }
+  .photo-drop{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    border:1.5px dashed var(--line); border-radius:9px; padding:26px 12px; text-align:center;
+    cursor:pointer; margin-bottom:14px; color:var(--ink-soft); font-size:12.5px;
+  }
+  .photo-drop:hover{ border-color:var(--accent); color:var(--accent); }
+  .photo-drop .icon{ font-size:22px; }
+  .photo-preview{
+    display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:9px;
+    padding:8px; margin-bottom:14px;
+  }
+  .photo-preview img{ width:52px; height:52px; object-fit:cover; border-radius:6px; }
+  .photo-preview .meta{ font-size:12px; color:var(--ink-soft); flex:1; }
+  .photo-preview .meta b{ display:block; color:var(--ink); font-size:12.5px; }
+  .photo-preview button{
+    background:transparent; border:1px solid var(--line); border-radius:7px; padding:5px 9px;
+    font-size:11.5px; color:var(--ink-soft); cursor:pointer; font-family:inherit;
+  }
+
+  .foot-note{
+    margin-top:36px; padding-top:18px; border-top:1px solid var(--line);
+    font-size:12px; color:var(--ink-soft); text-align:center;
+  }
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo-badge">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="#E8501A"/></svg>
+      </span>
+      <div class="wordmark"><span class="w-top">Volta</span><span class="w-bottom">Baterías</span></div>
+      <span class="tag">panel de tu punto de instalación</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <span class="status-pill">Datos de ejemplo, no reales</span>
+      <span class="session-pill" id="session-pill"><!-- injected --></span>
+    </div>
+  </div>
+
+  <section>
+    <div class="view-head">
+      <h2>Panel del punto de instalación</h2>
+      <p>Solo ves tu propia agenda, tu stock y tus pedidos — no los de otros puntos de la red. Confirmar una instalación exige elegir la batería concreta por número de serie.</p>
+    </div>
+    <div class="punto-shell">
+      <div class="card agenda-card">
+        <div class="agenda-head">
+          <h3 id="agenda-punto-title">Agenda de hoy</h3>
+          <span class="date">15 jul 2026</span>
+        </div>
+        <div id="agenda-list"><!-- injected --></div>
+      </div>
+      <div class="side-card card">
+        <div>
+          <h4>Stock disponible</h4>
+          <div class="stock-bar-wrap" style="margin-top:8px;">
+            <div class="stock-bar"><i id="stock-bar-fill" style="width:70%"></i></div>
+            <span class="stock-num" id="stock-num-label">7 / 10</span>
+          </div>
+        </div>
+        <div class="recompra-alert">
+          <b>2 baterías</b> llevan más de 3 meses en stock — elegibles para recompra.
+          <div style="margin-top:8px;"><button class="ghost-btn" style="width:100%;">Solicitar recompra</button></div>
+        </div>
+        <div>
+          <h4>Resumen del día</h4>
+          <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px; font-size:12.5px; color:var(--ink-soft);">
+            <div style="display:flex; justify-content:space-between;"><span>Con cita</span><b style="color:var(--ink); font-variant-numeric:tabular-nums;">4</b></div>
+            <div style="display:flex; justify-content:space-between;"><span>Walk-in</span><b style="color:var(--ink); font-variant-numeric:tabular-nums;">2</b></div>
+            <div style="display:flex; justify-content:space-between;"><span>Completadas</span><b style="color:var(--ok); font-variant-numeric:tabular-nums;">2</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card order-card">
+      <div class="order-head">
+        <h3>Hacer pedido de baterías</h3>
+        <p>Elegí el modelo y la cantidad que necesitás reponer. El pedido se manda a Volta y se suma a tu stock cuando llega.</p>
+      </div>
+      <div class="battery-grid" id="battery-grid"><!-- injected --></div>
+      <div class="order-summary">
+        <span class="total">Total del pedido: <b id="order-total">0 unidades</b></span>
+        <button class="primary-btn" id="send-order-btn" style="margin-top:0;" disabled>Enviar pedido a Volta</button>
+      </div>
+      <div id="order-confirm-box"></div>
+    </div>
+  </section>
+
+  <div class="foot-note">
+    Prototipo de interfaz — sin conexión a base de datos real. Sirve para validar el flujo y el diseño antes de construir la Fase 0/1 del sistema.
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-inner"><!-- injected by JS: paso 'serial' o 'foto' --></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SESSION_KEY = "volta_punto_activo";
+  var activePunto = null;
+  try{ activePunto = JSON.parse(localStorage.getItem(SESSION_KEY)); }catch(e){ activePunto = null; }
+  if(!activePunto || !activePunto.name){ window.location.href = "login-punto.html"; return; }
+
+  document.getElementById("session-pill").innerHTML =
+    'Sesión: <b>'+activePunto.name+'</b> · <a class="logout-link" href="#" id="logout-link">Salir</a>';
+  document.getElementById("agenda-punto-title").textContent =
+    "Agenda de hoy — "+activePunto.name+", "+activePunto.city;
+
+  document.getElementById("session-pill").addEventListener("click", function(e){
+    if(e.target.id !== "logout-link") return;
+    e.preventDefault();
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+    window.location.href = "login-punto.html";
+  });
+
+  var stock = typeof activePunto.stock === "number" ? activePunto.stock : 7;
+  document.getElementById("stock-bar-fill").style.width = (stock*10)+"%";
+  document.getElementById("stock-num-label").textContent = stock+" / 10";
+
+  // ===================== agenda + modal (solo de este punto) =====================
+  var reservas = [
+    {time:"09:30", walkin:false, cliente:"Laura Ibáñez", veh:"Peugeot 208 · 3312-BFT", estado:"completada", code:"VLT-10481"},
+    {time:"10:15", walkin:false, cliente:"Javier Ruiz", veh:"Renault Clio · 8890-CKM", estado:"completada", code:"VLT-10482"},
+    {time:"ahora", walkin:true, cliente:"María Gómez", veh:"Seat Ibiza · 4021-GTX", estado:"pendiente", code:"VLT-84271"},
+    {time:"12:30", walkin:false, cliente:"Pedro Salas", veh:"Fiat 500 · 1145-DXV", estado:"confirmada", code:"VLT-10483"},
+    {time:"16:00", walkin:false, cliente:"Nuria Ortiz", veh:"Opel Corsa · 7723-FGH", estado:"pendiente", code:"VLT-10484"},
+    {time:"ahora", walkin:true, cliente:"Carlos Ledesma", veh:"Kia Rio · 5567-LMN", estado:"pendiente", code:"VLT-10485"}
+  ];
+
+  // reservas hechas por el cliente en reserva-cliente.html, solo las de este punto
+  (function mergeReservasOnline(){
+    var online;
+    try{ online = JSON.parse(localStorage.getItem("volta_reservas_cliente")) || []; }
+    catch(e){ online = []; }
+    online.filter(function(r){ return r.puntoName === activePunto.name; }).forEach(function(r){
+      reservas.push({
+        time: r.walkin ? "ahora" : (r.hora || ""),
+        walkin: !!r.walkin,
+        cliente: r.nombre,
+        veh: [r.marca, r.modelo].filter(Boolean).join(" ") + (r.matricula ? " · "+r.matricula : ""),
+        estado: r.estado || "pendiente",
+        code: r.code
+      });
+    });
+  })();
+
+  function renderAgenda(){
+    var wrap = document.getElementById("agenda-list");
+    wrap.innerHTML = reservas.map(function(r,i){
+      var canConfirm = (r.estado==="confirmada" || r.estado==="pendiente");
+      return '<div class="res-row">' +
+        '<span class="res-time'+(r.walkin?' walkin':'')+'">'+(r.walkin?'AHORA':r.time)+'</span>' +
+        '<span class="res-main"><span class="cliente">'+r.cliente+'</span><div class="veh">'+r.veh+
+          (r.code ? ' <span style="font-family:ui-monospace,\'SF Mono\',monospace; color:var(--ink-soft);">· código '+r.code+'</span>' : '') +
+        '</div></span>' +
+        '<span class="chip '+r.estado+'">'+(r.walkin? 'Walk-in · '+r.estado : r.estado)+'</span>' +
+        (canConfirm ? '<button class="row-btn" data-confirm="'+i+'">Confirmar instalación</button>' : '<span></span>') +
+      '</div>';
+    }).join('');
+  }
+  renderAgenda();
+
+  var seriales = [
+    {sn:"VLT-SN-00481", age:"12 días en stock"},
+    {sn:"VLT-SN-00482", age:"12 días en stock"},
+    {sn:"VLT-SN-00460", age:"3 meses 2 días — elegible recompra"},
+    {sn:"VLT-SN-00475", age:"41 días en stock"}
+  ];
+  var modalSteps = ["serial","foto"];
+  var modalStepIdx = 0;
+  var selectedSerial = null;
+  var activeRowIndex = null;
+  var photoData = null;
+  var photoName = null;
+  var codigoInput = "";
+  var codigoError = "";
+  var cameraStream = null;
+  var cameraRAF = null;
+  var scanCanvas = document.createElement("canvas");
+  var nativeBarcodeSupported = ("BarcodeDetector" in window);
+  var cameraSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+  function currentStep(){ return modalSteps[modalStepIdx]; }
+
+  function stopCamera(){
+    if(cameraRAF){ cancelAnimationFrame(cameraRAF); cameraRAF = null; }
+    if(cameraStream){ cameraStream.getTracks().forEach(function(t){ t.stop(); }); cameraStream = null; }
+  }
+
+  function detectFromVideo(video){
+    if(nativeBarcodeSupported){
+      var detector = new window.BarcodeDetector({formats:["qr_code"]});
+      return detector.detect(video).then(function(codes){
+        return (codes && codes.length) ? codes[0].rawValue : null;
+      }).catch(function(){ return null; });
+    }
+    if(!video.videoWidth) return Promise.resolve(null);
+    scanCanvas.width = video.videoWidth;
+    scanCanvas.height = video.videoHeight;
+    var ctx = scanCanvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
+    var imageData = ctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+    var result = window.jsQR ? window.jsQR(imageData.data, imageData.width, imageData.height) : null;
+    return Promise.resolve(result ? result.data : null);
+  }
+
+  function startCamera(){
+    navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}).then(function(stream){
+      cameraStream = stream;
+      codigoError = "";
+      renderModal();
+      var video = document.getElementById("qr-video");
+      video.srcObject = stream;
+      function tick(){
+        if(!cameraStream) return;
+        detectFromVideo(video).then(function(value){
+          if(value){
+            codigoInput = value;
+            stopCamera();
+            renderModal();
+          } else {
+            cameraRAF = requestAnimationFrame(tick);
+          }
+        });
+      }
+      cameraRAF = requestAnimationFrame(tick);
+    }).catch(function(err){
+      codigoError = "No se pudo acceder a la cámara: " + err.message;
+      renderModal();
+    });
+  }
+
+  function openModal(rowIndex){
+    activeRowIndex = rowIndex;
+    var r = reservas[rowIndex];
+    modalSteps = (r && r.code) ? ["codigo","serial","foto"] : ["serial","foto"];
+    modalStepIdx = 0;
+    selectedSerial = null;
+    photoData = null; photoName = null;
+    codigoInput = ""; codigoError = "";
+    renderModal();
+    document.getElementById("modal-overlay").classList.add("open");
+  }
+  function closeModal(){
+    stopCamera();
+    document.getElementById("modal-overlay").classList.remove("open");
+  }
+
+  function renderModal(){
+    var el = document.getElementById("modal-inner");
+    var r = activeRowIndex!==null ? reservas[activeRowIndex] : null;
+    var step = currentStep();
+    var stepLabel = "Paso "+(modalStepIdx+1)+" de "+modalSteps.length;
+
+    if(step==="codigo"){
+      el.innerHTML =
+        '<div class="modal-step-label">'+stepLabel+' — verificar reserva</div>' +
+        '<h3>Escanear código QR</h3>' +
+        '<div class="sub">'+(r?r.cliente+' · '+r.veh:'')+'</div>' +
+        '<div class="photo-explain">El cliente reservó online y tiene un código QR de confirmación. Escaneálo con la cámara o escribí el código a mano para verificar que es la misma reserva antes de empezar la instalación.</div>' +
+        (cameraSupported
+          ? '<button type="button" class="ghost-btn" id="scan-qr-btn" style="width:100%; margin-bottom:12px;">'+(cameraStream?'Detener cámara':'Escanear con cámara')+'</button>'
+          : '<div class="sub" style="margin-bottom:12px;">Tu navegador no soporta acceso a la cámara — introducí el código a mano.</div>') +
+        (cameraStream ? '<video id="qr-video" autoplay playsinline muted style="width:100%; border-radius:9px; margin-bottom:12px; background:#000;"></video>' : '') +
+        '<div class="field" style="margin-bottom:8px;">' +
+          '<label for="codigo-input">Código de reserva</label>' +
+          '<input id="codigo-input" type="text" value="'+codigoInput+'" placeholder="VLT-00000" />' +
+        '</div>' +
+        (codigoError ? '<div style="color:var(--danger); font-size:12px; margin-bottom:12px;">'+codigoError+'</div>' : '') +
+        '<div class="modal-actions">' +
+          '<button class="ghost-btn" id="modal-cancel">Cancelar</button>' +
+          '<button class="primary-btn" id="modal-verify" style="margin-top:0;">Verificar código</button>' +
+        '</div>';
+
+    } else if(step==="serial"){
+      el.innerHTML =
+        '<div class="modal-step-label">'+stepLabel+' — batería instalada</div>' +
+        '<h3>Confirmar instalación</h3>' +
+        '<div class="sub">'+(r?r.cliente+' · '+r.veh:'')+'</div>' +
+        '<div class="serial-list" id="serial-list">' +
+          seriales.map(function(s){
+            return '<div class="serial-item'+(selectedSerial===s.sn?' selected':'')+'" data-sn="'+s.sn+'">' +
+              '<span class="sn">'+s.sn+'</span><span class="age">'+s.age+'</span></div>';
+          }).join('') +
+        '</div>' +
+        '<div class="field" style="margin-bottom:16px;">' +
+          '<label for="importe">Importe cobrado de servicio (€)</label>' +
+          '<input id="importe" type="text" value="30" />' +
+        '</div>' +
+        '<div class="modal-actions">' +
+          '<button class="ghost-btn" id="modal-cancel">Cancelar</button>' +
+          '<button class="primary-btn" id="modal-next" style="margin-top:0;" '+(selectedSerial?'':'disabled')+'>Continuar</button>' +
+        '</div>';
+    } else {
+      el.innerHTML =
+        '<div class="modal-step-label">'+stepLabel+' — evidencia fotográfica</div>' +
+        '<h3>Foto de la batería instalada</h3>' +
+        '<div class="sub">Número de serie '+(selectedSerial||'')+'</div>' +
+        '<div class="photo-explain">Pedimos una foto de la batería ya montada en el vehículo, con la etiqueta o el número de serie visible. <b>Sirve para verificar que es una unidad original Volta</b> — no una genérica de otro proveedor — y queda guardada junto al registro de instalación como evidencia, para que la trazabilidad no dependa solo de lo que declare el punto.</div>' +
+        (photoData
+          ? '<div class="photo-preview"><img src="'+photoData+'" alt="Foto de la batería instalada" />' +
+              '<div class="meta"><b>'+photoName+'</b>Foto lista para adjuntar</div>' +
+              '<button id="photo-remove" type="button">Quitar</button></div>'
+          : '<label class="photo-drop" for="photo-input"><span class="icon">📷</span><span><b>Tocá para hacer o subir la foto</b></span><span>JPG o PNG</span></label>') +
+        '<input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none;" />' +
+        '<div class="modal-actions">' +
+          '<button class="ghost-btn" id="modal-back">Atrás</button>' +
+          '<button class="primary-btn" id="modal-finish" style="margin-top:0;" '+(photoData?'':'disabled')+'>Finalizar instalación</button>' +
+        '</div>';
+    }
+  }
+
+  document.getElementById("agenda-list").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-confirm]");
+    if(!btn) return;
+    openModal(Number(btn.dataset.confirm));
+  });
+
+  document.getElementById("modal-inner").addEventListener("click", function(e){
+    var t = e.target;
+    var snItem = t.closest("[data-sn]");
+    if(snItem){ selectedSerial = snItem.dataset.sn; renderModal(); return; }
+    if(t.id==="modal-cancel"){ closeModal(); return; }
+
+    if(t.id==="scan-qr-btn"){
+      if(cameraStream){ stopCamera(); renderModal(); } else { startCamera(); }
+      return;
+    }
+    if(t.id==="modal-verify"){
+      var r = reservas[activeRowIndex];
+      var typed = document.getElementById("codigo-input").value.trim().toUpperCase();
+      if(typed === (r.code||"").toUpperCase()){
+        stopCamera();
+        modalStepIdx++;
+        renderModal();
+      } else {
+        codigoInput = typed;
+        codigoError = "El código no coincide con esta reserva. Revisalo e intentá de nuevo.";
+        renderModal();
+      }
+      return;
+    }
+    if(t.id==="modal-next" && !t.disabled){ modalStepIdx++; renderModal(); return; }
+    if(t.id==="modal-back"){ stopCamera(); modalStepIdx--; renderModal(); return; }
+    if(t.id==="photo-remove"){ photoData=null; photoName=null; renderModal(); return; }
+    if(t.id==="modal-finish" && !t.disabled){
+      if(activeRowIndex!==null){ reservas[activeRowIndex].estado = "completada"; renderAgenda(); }
+      closeModal();
+      return;
+    }
+  });
+
+  document.getElementById("modal-inner").addEventListener("change", function(e){
+    if(e.target.id!=="photo-input") return;
+    var file = e.target.files[0];
+    if(!file) return;
+    photoName = file.name;
+    var reader = new FileReader();
+    reader.onload = function(ev){ photoData = ev.target.result; renderModal(); };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById("modal-overlay").addEventListener("click", function(e){
+    if(e.target.id==="modal-overlay"){ closeModal(); }
+  });
+
+  // ===================== pedido de baterías =====================
+  var catalogo = [
+    {sku:"L750D", desc:"Compacta, para utilitarios y ciudad. La más pedida en reposición estándar.", precio:"189"},
+    {sku:"B750D", desc:"Potencia media, uso general. Compatible con la mayoría de berlinas y compactos.", precio:"219"},
+    {sku:"C+700", desc:"Alta capacidad, mayor autonomía. Para modelos que consumen más o SUV.", precio:"249"}
+  ];
+  var orderQty = { "L750D":0, "B750D":0, "C+700":0 };
+
+  function renderBatteryGrid(){
+    var wrap = document.getElementById("battery-grid");
+    wrap.innerHTML = catalogo.map(function(b){
+      return '<div class="battery-card">' +
+        '<span class="sku">'+b.sku+'</span>' +
+        '<span class="desc">'+b.desc+'</span>' +
+        '<span class="price">Precio mayorista <b>'+b.precio+' €</b></span>' +
+        '<div class="qty-control">' +
+          '<button class="qty-btn" data-qty-down="'+b.sku+'" aria-label="Quitar una '+b.sku+'">–</button>' +
+          '<span class="qty-num" id="qty-'+b.sku+'">'+orderQty[b.sku]+'</span>' +
+          '<button class="qty-btn" data-qty-up="'+b.sku+'" aria-label="Añadir una '+b.sku+'">+</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    updateOrderTotal();
+  }
+
+  function updateOrderTotal(){
+    var total = 0;
+    catalogo.forEach(function(b){ total += orderQty[b.sku]; });
+    document.getElementById("order-total").textContent = total + (total===1 ? " unidad" : " unidades");
+    document.getElementById("send-order-btn").disabled = total===0;
+    document.getElementById("send-order-btn").style.opacity = total===0 ? .4 : 1;
+    document.getElementById("send-order-btn").style.cursor = total===0 ? "not-allowed" : "pointer";
+  }
+
+  renderBatteryGrid();
+
+  document.getElementById("battery-grid").addEventListener("click", function(e){
+    var up = e.target.closest("[data-qty-up]");
+    var down = e.target.closest("[data-qty-down]");
+    if(up){
+      var sku1 = up.dataset.qtyUp;
+      orderQty[sku1] = Math.min(20, orderQty[sku1]+1);
+      document.getElementById("qty-"+sku1).textContent = orderQty[sku1];
+      updateOrderTotal();
+    } else if(down){
+      var sku2 = down.dataset.qtyDown;
+      orderQty[sku2] = Math.max(0, orderQty[sku2]-1);
+      document.getElementById("qty-"+sku2).textContent = orderQty[sku2];
+      updateOrderTotal();
+    }
+  });
+
+  document.getElementById("send-order-btn").addEventListener("click", function(){
+    var lines = catalogo.filter(function(b){ return orderQty[b.sku] > 0; })
+      .map(function(b){ return orderQty[b.sku]+' × '+b.sku; }).join(' · ');
+    document.getElementById("order-confirm-box").innerHTML =
+      '<div class="order-confirm">✓ Pedido enviado a Volta — '+lines+'. Te avisamos por email cuando salga hacia tu punto.</div>';
+    catalogo.forEach(function(b){ orderQty[b.sku] = 0; });
+    renderBatteryGrid();
+  });
+})();
+</script>
