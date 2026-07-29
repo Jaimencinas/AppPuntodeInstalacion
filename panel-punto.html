@@ -241,6 +241,40 @@
     margin-top:36px; padding-top:18px; border-top:1px solid var(--line);
     font-size:12px; color:var(--ink-soft); text-align:center;
   }
+
+  .date-input{
+    border:1px solid var(--line); border-radius:7px; padding:7px 9px; font-size:12.5px;
+    background:var(--surface); color:var(--ink); font-family:inherit;
+  }
+  .agenda-empty{ padding:24px 4px; color:var(--ink-soft); font-size:13px; text-align:center; }
+  .agenda-closed{
+    padding:18px 14px; color:var(--warn); background:var(--warn-soft); border-radius:8px;
+    font-size:13px; margin:4px 0 12px; font-weight:600;
+  }
+
+  .order-toggle-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+
+  .schedule-modal{ max-width:520px; }
+  .schedule-day{
+    display:grid; grid-template-columns:110px auto 1fr 1fr; align-items:center; gap:8px;
+    padding:8px 0; border-top:1px solid var(--line); font-size:12.5px;
+  }
+  .schedule-day:first-of-type{ border-top:none; }
+  .schedule-day input[type="time"]{
+    border:1px solid var(--line); border-radius:6px; padding:5px 6px; font-size:12px;
+    background:var(--surface); color:var(--ink); font-family:inherit; width:100%;
+  }
+  .schedule-day input[type="time"]:disabled{ opacity:.4; }
+  .closure-list{ display:flex; flex-direction:column; gap:6px; margin:10px 0 14px; max-height:140px; overflow-y:auto; }
+  .closure-item{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    border:1px solid var(--line); border-radius:7px; padding:8px 10px; font-size:12px;
+  }
+  .closure-item button{
+    background:transparent; border:1px solid var(--line); border-radius:6px; padding:4px 8px;
+    font-size:11px; color:var(--danger); cursor:pointer; font-family:inherit;
+  }
+  .closure-add{ display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end; margin-bottom:14px; }
 </style>
 
 <div class="wrap">
@@ -266,8 +300,11 @@
     <div class="punto-shell">
       <div class="card agenda-card">
         <div class="agenda-head">
-          <h3 id="agenda-punto-title">Agenda de hoy</h3>
-          <span class="date">15 jul 2026</span>
+          <h3 id="agenda-punto-title">Agenda</h3>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <input type="date" id="agenda-date-input" class="date-input" />
+            <button class="ghost-btn" id="btn-editar-horarios">Editar horarios</button>
+          </div>
         </div>
         <div id="agenda-list"><!-- injected --></div>
       </div>
@@ -285,10 +322,8 @@
         </div>
         <div>
           <h4>Resumen del día</h4>
-          <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px; font-size:12.5px; color:var(--ink-soft);">
-            <div style="display:flex; justify-content:space-between;"><span>Con cita</span><b style="color:var(--ink); font-variant-numeric:tabular-nums;">4</b></div>
-            <div style="display:flex; justify-content:space-between;"><span>Walk-in</span><b style="color:var(--ink); font-variant-numeric:tabular-nums;">2</b></div>
-            <div style="display:flex; justify-content:space-between;"><span>Completadas</span><b style="color:var(--ok); font-variant-numeric:tabular-nums;">2</b></div>
+          <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px; font-size:12.5px; color:var(--ink-soft);" id="resumen-dia">
+            <!-- injected -->
           </div>
         </div>
       </div>
@@ -296,15 +331,21 @@
 
     <div class="card order-card">
       <div class="order-head">
-        <h3>Hacer pedido de baterías</h3>
-        <p>Elegí el modelo y la cantidad que necesitás reponer. El pedido se manda a Volta y se suma a tu stock cuando llega.</p>
+        <h3>Pedidos de baterías</h3>
+        <p>Elegí si es reposición de stock para instalaciones o un pedido de comercio para vender directamente en tu punto.</p>
       </div>
-      <div class="battery-grid" id="battery-grid"><!-- injected --></div>
-      <div class="order-summary">
-        <span class="total">Total del pedido: <b id="order-total">0 unidades</b></span>
-        <button class="primary-btn" id="send-order-btn" style="margin-top:0;" disabled>Enviar pedido a Volta</button>
+      <div class="order-toggle-row">
+        <button class="primary-btn" id="btn-pedido-instalaciones" style="margin-top:0;">Pedido para instalaciones</button>
+        <button class="ghost-btn" id="btn-pedido-comercio">Pedido para comercio</button>
       </div>
-      <div id="order-confirm-box"></div>
+      <div id="pedido-instalaciones-panel" style="display:none; margin-top:18px;">
+        <div class="battery-grid" id="battery-grid"><!-- injected --></div>
+        <div class="order-summary">
+          <span class="total">Total del pedido: <b id="order-total">0 unidades</b></span>
+          <button class="primary-btn" id="send-order-btn" style="margin-top:0;" disabled>Enviar pedido a Volta</button>
+        </div>
+        <div id="order-confirm-box"></div>
+      </div>
     </div>
   </section>
 
@@ -315,6 +356,10 @@
 
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal" id="modal-inner"><!-- injected by JS: paso 'serial' o 'foto' --></div>
+</div>
+
+<div class="modal-overlay" id="horarios-overlay">
+  <div class="modal schedule-modal" id="horarios-inner"><!-- injected by JS --></div>
 </div>
 
 <script>
@@ -344,14 +389,18 @@
   document.getElementById("stock-num-label").textContent = stock+" / 10";
 
   // ===================== agenda + modal (solo de este punto) =====================
+  var HOY = "2026-07-15";
   var reservas = [
-    {time:"09:30", walkin:false, cliente:"Laura Ibáñez", veh:"Peugeot 208 · 3312-BFT", estado:"completada", code:"VLT-10481"},
-    {time:"10:15", walkin:false, cliente:"Javier Ruiz", veh:"Renault Clio · 8890-CKM", estado:"completada", code:"VLT-10482"},
-    {time:"ahora", walkin:true, cliente:"María Gómez", veh:"Seat Ibiza · 4021-GTX", estado:"pendiente", code:"VLT-84271"},
-    {time:"12:30", walkin:false, cliente:"Pedro Salas", veh:"Fiat 500 · 1145-DXV", estado:"confirmada", code:"VLT-10483"},
-    {time:"16:00", walkin:false, cliente:"Nuria Ortiz", veh:"Opel Corsa · 7723-FGH", estado:"pendiente", code:"VLT-10484"},
-    {time:"ahora", walkin:true, cliente:"Carlos Ledesma", veh:"Kia Rio · 5567-LMN", estado:"pendiente", code:"VLT-10485"}
+    {date:HOY, time:"09:30", walkin:false, cliente:"Laura Ibáñez", marca:"Peugeot", modelo:"208", anio:"2021", matricula:"3312-BFT", estado:"completada", code:"VLT-10481"},
+    {date:HOY, time:"10:15", walkin:false, cliente:"Javier Ruiz", marca:"Renault", modelo:"Clio", anio:"2019", matricula:"8890-CKM", estado:"completada", code:"VLT-10482"},
+    {date:HOY, time:"ahora", walkin:true, cliente:"María Gómez", marca:"Seat", modelo:"Ibiza", anio:"2020", matricula:"4021-GTX", estado:"pendiente", code:"VLT-84271"},
+    {date:HOY, time:"12:30", walkin:false, cliente:"Pedro Salas", marca:"Fiat", modelo:"500", anio:"2022", matricula:"1145-DXV", estado:"confirmada", code:"VLT-10483"},
+    {date:HOY, time:"16:00", walkin:false, cliente:"Nuria Ortiz", marca:"Opel", modelo:"Corsa", anio:"2018", matricula:"7723-FGH", estado:"pendiente", code:"VLT-10484"},
+    {date:HOY, time:"ahora", walkin:true, cliente:"Carlos Ledesma", marca:"Kia", modelo:"Rio", anio:"2023", matricula:"5567-LMN", estado:"pendiente", code:"VLT-10485"}
   ];
+  reservas.forEach(function(r){
+    r.veh = r.marca+" "+r.modelo+" · "+r.anio+" · "+r.matricula;
+  });
 
   // reservas hechas por el cliente en reserva-cliente.html, solo las de este punto
   (function mergeReservasOnline(){
@@ -360,31 +409,169 @@
     catch(e){ online = []; }
     online.filter(function(r){ return r.puntoName === activePunto.name; }).forEach(function(r){
       reservas.push({
+        date: r.fecha || HOY,
         time: r.walkin ? "ahora" : (r.hora || ""),
         walkin: !!r.walkin,
         cliente: r.nombre,
-        veh: [r.marca, r.modelo].filter(Boolean).join(" ") + (r.matricula ? " · "+r.matricula : ""),
+        marca: r.marca || "", modelo: r.modelo || "", anio: r.anio || "", matricula: r.matricula || "",
+        veh: [r.marca, r.modelo].filter(Boolean).join(" ") + (r.anio ? " · "+r.anio : "") + (r.matricula ? " · "+r.matricula : ""),
         estado: r.estado || "pendiente",
         code: r.code
       });
     });
   })();
 
-  function renderAgenda(){
-    var wrap = document.getElementById("agenda-list");
-    wrap.innerHTML = reservas.map(function(r,i){
-      var canConfirm = (r.estado==="confirmada" || r.estado==="pendiente");
-      return '<div class="res-row">' +
-        '<span class="res-time'+(r.walkin?' walkin':'')+'">'+(r.walkin?'AHORA':r.time)+'</span>' +
-        '<span class="res-main"><span class="cliente">'+r.cliente+'</span><div class="veh">'+r.veh+
-          (r.code ? ' <span style="font-family:ui-monospace,\'SF Mono\',monospace; color:var(--ink-soft);">· código '+r.code+'</span>' : '') +
-        '</div></span>' +
-        '<span class="chip '+r.estado+'">'+(r.walkin? 'Walk-in · '+r.estado : r.estado)+'</span>' +
-        (canConfirm ? '<button class="row-btn" data-confirm="'+i+'">Confirmar instalación</button>' : '<span></span>') +
-      '</div>';
-    }).join('');
+  // ===================== horarios y disponibilidad =====================
+  var HORARIOS_KEY = "volta_horarios_"+activePunto.name;
+  var diasSemana = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  var horarios = null;
+  (function loadHorarios(){
+    try{ horarios = JSON.parse(localStorage.getItem(HORARIOS_KEY)); }catch(e){ horarios = null; }
+    if(!horarios){
+      horarios = {
+        dias: diasSemana.map(function(d,i){ return {nombre:d, abierto: i<6, inicio:"09:00", fin:"20:00"}; }),
+        cierres: []
+      };
+    }
+  })();
+  function saveHorarios(){ localStorage.setItem(HORARIOS_KEY, JSON.stringify(horarios)); }
+
+  function isoToWeekdayIdx(iso){
+    // getDay(): 0=domingo..6=sábado → lo pasamos a 0=lunes..6=domingo
+    var d = new Date(iso+"T00:00:00").getDay();
+    return d===0 ? 6 : d-1;
   }
+  function cierreParaFecha(iso){
+    return horarios.cierres.find(function(c){ return iso >= c.desde && iso <= c.hasta; });
+  }
+  function estadoDia(iso){
+    var cierre = cierreParaFecha(iso);
+    if(cierre) return {cerrado:true, motivo: cierre.motivo || "Cerrado"};
+    var dia = horarios.dias[isoToWeekdayIdx(iso)];
+    if(!dia.abierto) return {cerrado:true, motivo:"Cerrado ese día de la semana"};
+    return {cerrado:false, dia:dia};
+  }
+
+  function renderResumenDia(lista){
+    var conCita = lista.filter(function(r){ return !r.walkin; }).length;
+    var sinCita = lista.filter(function(r){ return r.walkin; }).length;
+    var completadas = lista.filter(function(r){ return r.estado==="completada"; }).length;
+    document.getElementById("resumen-dia").innerHTML =
+      '<div style="display:flex; justify-content:space-between;"><span>Cita reservada</span><b style="color:var(--ink); font-variant-numeric:tabular-nums;">'+conCita+'</b></div>' +
+      '<div style="display:flex; justify-content:space-between;"><span>Sin cita previa</span><b style="color:var(--ink); font-variant-numeric:tabular-nums;">'+sinCita+'</b></div>' +
+      '<div style="display:flex; justify-content:space-between;"><span>Completadas</span><b style="color:var(--ok); font-variant-numeric:tabular-nums;">'+completadas+'</b></div>';
+  }
+
+  var reservasVisibles = []; // referencias a 'reservas' filtradas por la fecha activa, para mapear índices del botón confirmar
+
+  function renderAgenda(){
+    var iso = document.getElementById("agenda-date-input").value;
+    var wrap = document.getElementById("agenda-list");
+    var estado = estadoDia(iso);
+    reservasVisibles = reservas.filter(function(r){ return r.date === iso; });
+
+    var d = new Date(iso+"T00:00:00");
+    document.getElementById("agenda-punto-title").textContent =
+      "Agenda — "+activePunto.name+", "+activePunto.city;
+
+    if(estado.cerrado){
+      wrap.innerHTML = '<div class="agenda-closed">Cerrado — '+estado.motivo+'</div>';
+    } else if(reservasVisibles.length===0){
+      wrap.innerHTML = '<div class="agenda-empty">Sin reservas para este día (horario: '+estado.dia.inicio+' – '+estado.dia.fin+').</div>';
+    } else {
+      wrap.innerHTML = reservasVisibles.map(function(r,i){
+        var canConfirm = (r.estado==="confirmada" || r.estado==="pendiente");
+        return '<div class="res-row">' +
+          '<span class="res-time'+(r.walkin?' walkin':'')+'">'+(r.walkin?'AHORA':r.time)+'</span>' +
+          '<span class="res-main"><span class="cliente">'+r.cliente+'</span><div class="veh">'+r.veh+'</div></span>' +
+          '<span class="chip '+r.estado+'">'+(r.walkin? 'Sin cita previa · '+r.estado : r.estado)+'</span>' +
+          (canConfirm ? '<button class="row-btn" data-confirm="'+i+'">Confirmar instalación</button>' : '<span></span>') +
+        '</div>';
+      }).join('');
+    }
+    renderResumenDia(reservasVisibles);
+  }
+
+  document.getElementById("agenda-date-input").value = HOY;
+  document.getElementById("agenda-date-input").addEventListener("change", renderAgenda);
   renderAgenda();
+
+  // ---- modal de horarios ----
+  function renderHorariosModal(){
+    var el = document.getElementById("horarios-inner");
+    el.innerHTML =
+      '<h3>Horarios y disponibilidad</h3>' +
+      '<div class="sub">Marcá qué días abrís y en qué franja, y añadí periodos cerrados (vacaciones, festivos propios, etc).</div>' +
+      '<div id="schedule-days">' +
+        horarios.dias.map(function(d,i){
+          return '<div class="schedule-day">' +
+            '<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" data-day-open="'+i+'" '+(d.abierto?'checked':'')+' /> '+d.nombre+'</label>' +
+            '<span></span>' +
+            '<input type="time" data-day-inicio="'+i+'" value="'+d.inicio+'" '+(d.abierto?'':'disabled')+' />' +
+            '<input type="time" data-day-fin="'+i+'" value="'+d.fin+'" '+(d.abierto?'':'disabled')+' />' +
+          '</div>';
+        }).join('') +
+      '</div>' +
+      '<h4 style="margin-top:18px;">Periodos cerrados (vacaciones)</h4>' +
+      '<div class="closure-list" id="closure-list">' +
+        (horarios.cierres.length===0 ? '<div class="sub" style="margin:0;">Sin periodos cerrados.</div>' :
+        horarios.cierres.map(function(c,i){
+          return '<div class="closure-item"><span>'+c.desde+' → '+c.hasta+' · '+(c.motivo||'Cerrado')+'</span><button data-del-cierre="'+i+'">Quitar</button></div>';
+        }).join('')) +
+      '</div>' +
+      '<div class="closure-add">' +
+        '<div class="field"><label>Desde</label><input type="date" id="cierre-desde" /></div>' +
+        '<div class="field"><label>Hasta</label><input type="date" id="cierre-hasta" /></div>' +
+        '<button class="ghost-btn" id="add-cierre-btn" style="height:38px;">Añadir</button>' +
+      '</div>' +
+      '<div class="modal-actions">' +
+        '<button class="ghost-btn" id="horarios-cancel">Cerrar</button>' +
+        '<button class="primary-btn" id="horarios-guardar" style="margin-top:0;">Guardar horarios</button>' +
+      '</div>';
+  }
+
+  document.getElementById("btn-editar-horarios").addEventListener("click", function(){
+    renderHorariosModal();
+    document.getElementById("horarios-overlay").classList.add("open");
+  });
+  document.getElementById("horarios-overlay").addEventListener("click", function(e){
+    if(e.target.id==="horarios-overlay"){ document.getElementById("horarios-overlay").classList.remove("open"); }
+  });
+  document.getElementById("horarios-inner").addEventListener("change", function(e){
+    var t = e.target;
+    if(t.dataset.dayOpen!==undefined){
+      horarios.dias[Number(t.dataset.dayOpen)].abierto = t.checked;
+      renderHorariosModal();
+    } else if(t.dataset.dayInicio!==undefined){
+      horarios.dias[Number(t.dataset.dayInicio)].inicio = t.value;
+    } else if(t.dataset.dayFin!==undefined){
+      horarios.dias[Number(t.dataset.dayFin)].fin = t.value;
+    }
+  });
+  document.getElementById("horarios-inner").addEventListener("click", function(e){
+    var t = e.target;
+    if(t.id==="horarios-cancel"){ document.getElementById("horarios-overlay").classList.remove("open"); return; }
+    if(t.id==="add-cierre-btn"){
+      var desde = document.getElementById("cierre-desde").value;
+      var hasta = document.getElementById("cierre-hasta").value;
+      if(desde && hasta && hasta>=desde){
+        horarios.cierres.push({desde:desde, hasta:hasta, motivo:"Vacaciones"});
+        renderHorariosModal();
+      }
+      return;
+    }
+    if(t.dataset.delCierre!==undefined){
+      horarios.cierres.splice(Number(t.dataset.delCierre),1);
+      renderHorariosModal();
+      return;
+    }
+    if(t.id==="horarios-guardar"){
+      saveHorarios();
+      document.getElementById("horarios-overlay").classList.remove("open");
+      renderAgenda();
+      return;
+    }
+  });
 
   var seriales = [
     {sn:"VLT-SN-00481", age:"12 días en stock"},
@@ -458,7 +645,7 @@
 
   function openModal(rowIndex){
     activeRowIndex = rowIndex;
-    var r = reservas[rowIndex];
+    var r = reservasVisibles[rowIndex];
     modalSteps = (r && r.code) ? ["codigo","serial","foto"] : ["serial","foto"];
     modalStepIdx = 0;
     selectedSerial = null;
@@ -474,7 +661,7 @@
 
   function renderModal(){
     var el = document.getElementById("modal-inner");
-    var r = activeRowIndex!==null ? reservas[activeRowIndex] : null;
+    var r = activeRowIndex!==null ? reservasVisibles[activeRowIndex] : null;
     var step = currentStep();
     var stepLabel = "Paso "+(modalStepIdx+1)+" de "+modalSteps.length;
 
@@ -553,7 +740,7 @@
       return;
     }
     if(t.id==="modal-verify"){
-      var r = reservas[activeRowIndex];
+      var r = reservasVisibles[activeRowIndex];
       var typed = document.getElementById("codigo-input").value.trim().toUpperCase();
       if(typed === (r.code||"").toUpperCase()){
         stopCamera();
@@ -570,7 +757,7 @@
     if(t.id==="modal-back"){ stopCamera(); modalStepIdx--; renderModal(); return; }
     if(t.id==="photo-remove"){ photoData=null; photoName=null; renderModal(); return; }
     if(t.id==="modal-finish" && !t.disabled){
-      if(activeRowIndex!==null){ reservas[activeRowIndex].estado = "completada"; renderAgenda(); }
+      if(activeRowIndex!==null){ reservasVisibles[activeRowIndex].estado = "completada"; renderAgenda(); }
       closeModal();
       return;
     }
@@ -625,6 +812,14 @@
   }
 
   renderBatteryGrid();
+
+  document.getElementById("btn-pedido-instalaciones").addEventListener("click", function(){
+    var panel = document.getElementById("pedido-instalaciones-panel");
+    panel.style.display = panel.style.display==="none" ? "block" : "none";
+  });
+  document.getElementById("btn-pedido-comercio").addEventListener("click", function(){
+    window.open("https://voltabaterias.com/baterias-de-coche/", "_blank", "noopener");
+  });
 
   document.getElementById("battery-grid").addEventListener("click", function(e){
     var up = e.target.closest("[data-qty-up]");
