@@ -275,6 +275,29 @@
     font-size:11px; color:var(--danger); cursor:pointer; font-family:inherit;
   }
   .closure-add{ display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end; margin-bottom:14px; }
+
+  .date-filter-group{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .filter-chip{
+    background:transparent; border:1px solid var(--line); border-radius:999px; padding:6px 12px;
+    font-size:11px; font-weight:700; cursor:pointer; color:var(--ink-soft); font-family:inherit;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .filter-chip:hover{ border-color:var(--accent); color:var(--accent); }
+  .filter-chip.active{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+
+  .day-group-head{
+    font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--brand); padding:14px 4px 6px; border-top:1px solid var(--line); margin-top:4px;
+  }
+  .day-group-head:first-child{ border-top:none; margin-top:0; padding-top:4px; }
+
+  .metrics-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+  @media (max-width:900px){ .metrics-grid{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:520px){ .metrics-grid{ grid-template-columns:1fr; } }
+  .metric-card{ padding:16px; display:flex; flex-direction:column; gap:4px; }
+  .metric-card .m-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:700; }
+  .metric-card .m-value{ font-family:var(--font-display); font-size:26px; font-weight:800; letter-spacing:.01em; }
+  .metric-card .m-hint{ font-size:11.5px; color:var(--ink-soft); }
 </style>
 
 <div class="wrap">
@@ -297,12 +320,20 @@
       <h2>Panel del punto de instalación</h2>
       <p>Solo ves tu propia agenda, tu stock y tus pedidos — no los de otros puntos de la red. Confirmar una instalación exige elegir la batería concreta por número de serie.</p>
     </div>
+    <div class="metrics-grid" id="metrics-grid"><!-- injected --></div>
+
     <div class="punto-shell">
       <div class="card agenda-card">
-        <div class="agenda-head">
+        <div class="agenda-head" style="flex-wrap:wrap; gap:10px;">
           <h3 id="agenda-punto-title">Agenda</h3>
-          <div style="display:flex; align-items:center; gap:10px;">
-            <input type="date" id="agenda-date-input" class="date-input" />
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <div class="date-filter-group" id="date-filter-group">
+              <button type="button" class="filter-chip" data-filter-mode="hoy">Hoy</button>
+              <button type="button" class="filter-chip" data-filter-mode="manana">Mañana</button>
+              <button type="button" class="filter-chip" data-filter-mode="semana">Esta semana</button>
+              <button type="button" class="filter-chip" data-filter-mode="personalizado">Personalizado</button>
+            </div>
+            <input type="date" id="agenda-date-input" class="date-input" style="display:none;" />
             <button class="ghost-btn" id="btn-editar-horarios">Editar horarios</button>
           </div>
         </div>
@@ -462,39 +493,126 @@
       '<div style="display:flex; justify-content:space-between;"><span>Completadas</span><b style="color:var(--ok); font-variant-numeric:tabular-nums;">'+completadas+'</b></div>';
   }
 
-  var reservasVisibles = []; // referencias a 'reservas' filtradas por la fecha activa, para mapear índices del botón confirmar
+  var reservasVisibles = []; // aplanado de las reservas mostradas (una o varias fechas), para mapear índices del botón confirmar
+
+  var COMISION_POR_INSTALACION = 12; // € que Volta le abona al punto por cada instalación completada
+  var IMPORTE_SERVICIO_PROMEDIO = 30; // € que el punto cobra al cliente por el servicio de instalación
+
+  function addDays(iso, n){
+    var d = new Date(iso+"T00:00:00");
+    d.setDate(d.getDate()+n);
+    return d.toISOString().slice(0,10);
+  }
+  function fechaLarga(iso){
+    var d = new Date(iso+"T00:00:00");
+    return d.toLocaleDateString("es-ES", {weekday:"long", day:"numeric", month:"short"});
+  }
+
+  var filterMode = "hoy";
+
+  function fechasParaModo(modo){
+    if(modo==="manana") return [addDays(HOY,1)];
+    if(modo==="personalizado") return [document.getElementById("agenda-date-input").value || HOY];
+    if(modo==="semana"){
+      var lunes = addDays(HOY, -isoToWeekdayIdx(HOY));
+      var out = [];
+      for(var i=0;i<7;i++){ out.push(addDays(lunes,i)); }
+      return out;
+    }
+    return [HOY]; // "hoy"
+  }
+
+  function renderDiaRows(iso, startIdx){
+    var estado = estadoDia(iso);
+    var dayReservas = reservas.filter(function(r){ return r.date === iso; });
+    dayReservas.forEach(function(r){ reservasVisibles.push(r); });
+
+    if(estado.cerrado){
+      return '<div class="agenda-closed">Cerrado — '+estado.motivo+'</div>';
+    }
+    if(dayReservas.length===0){
+      return '<div class="agenda-empty">Sin reservas para este día (horario: '+estado.dia.inicio+' – '+estado.dia.fin+').</div>';
+    }
+    return dayReservas.map(function(r,i){
+      var canConfirm = (r.estado==="confirmada" || r.estado==="pendiente");
+      return '<div class="res-row">' +
+        '<span class="res-time'+(r.walkin?' walkin':'')+'">'+(r.walkin?'AHORA':r.time)+'</span>' +
+        '<span class="res-main"><span class="cliente">'+r.cliente+'</span><div class="veh">'+r.veh+'</div></span>' +
+        '<span class="chip '+r.estado+'">'+(r.walkin? 'Sin cita previa · '+r.estado : r.estado)+'</span>' +
+        (canConfirm ? '<button class="row-btn" data-confirm="'+(startIdx+i)+'">Confirmar instalación</button>' : '<span></span>') +
+      '</div>';
+    }).join('');
+  }
 
   function renderAgenda(){
-    var iso = document.getElementById("agenda-date-input").value;
     var wrap = document.getElementById("agenda-list");
-    var estado = estadoDia(iso);
-    reservasVisibles = reservas.filter(function(r){ return r.date === iso; });
+    var fechas = fechasParaModo(filterMode);
+    reservasVisibles = [];
 
-    var d = new Date(iso+"T00:00:00");
     document.getElementById("agenda-punto-title").textContent =
       "Agenda — "+activePunto.name+", "+activePunto.city;
 
-    if(estado.cerrado){
-      wrap.innerHTML = '<div class="agenda-closed">Cerrado — '+estado.motivo+'</div>';
-    } else if(reservasVisibles.length===0){
-      wrap.innerHTML = '<div class="agenda-empty">Sin reservas para este día (horario: '+estado.dia.inicio+' – '+estado.dia.fin+').</div>';
+    if(fechas.length===1){
+      wrap.innerHTML = renderDiaRows(fechas[0], 0);
     } else {
-      wrap.innerHTML = reservasVisibles.map(function(r,i){
-        var canConfirm = (r.estado==="confirmada" || r.estado==="pendiente");
-        return '<div class="res-row">' +
-          '<span class="res-time'+(r.walkin?' walkin':'')+'">'+(r.walkin?'AHORA':r.time)+'</span>' +
-          '<span class="res-main"><span class="cliente">'+r.cliente+'</span><div class="veh">'+r.veh+'</div></span>' +
-          '<span class="chip '+r.estado+'">'+(r.walkin? 'Sin cita previa · '+r.estado : r.estado)+'</span>' +
-          (canConfirm ? '<button class="row-btn" data-confirm="'+i+'">Confirmar instalación</button>' : '<span></span>') +
-        '</div>';
+      wrap.innerHTML = fechas.map(function(iso){
+        var startIdx = reservasVisibles.length;
+        var rowsHtml = renderDiaRows(iso, startIdx);
+        return '<div class="day-group-head">'+fechaLarga(iso)+'</div>' + rowsHtml;
       }).join('');
     }
     renderResumenDia(reservasVisibles);
+    renderMetrics();
   }
+
+  function setFilterMode(modo){
+    filterMode = modo;
+    document.querySelectorAll("[data-filter-mode]").forEach(function(b){
+      b.classList.toggle("active", b.dataset.filterMode===modo);
+    });
+    document.getElementById("agenda-date-input").style.display = modo==="personalizado" ? "inline-block" : "none";
+    renderAgenda();
+  }
+
+  document.getElementById("date-filter-group").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-filter-mode]");
+    if(!btn) return;
+    setFilterMode(btn.dataset.filterMode);
+  });
 
   document.getElementById("agenda-date-input").value = HOY;
   document.getElementById("agenda-date-input").addEventListener("change", renderAgenda);
-  renderAgenda();
+  setFilterMode("hoy");
+
+  // ===================== métricas del punto =====================
+  function renderMetrics(){
+    var completadas = reservas.filter(function(r){ return r.estado==="completada"; }).length;
+    var pendientes = reservas.filter(function(r){ return r.estado!=="completada"; }).length;
+    var aRecibir = completadas * COMISION_POR_INSTALACION;
+    var cobrado = completadas * IMPORTE_SERVICIO_PROMEDIO;
+
+    document.getElementById("metrics-grid").innerHTML =
+      '<div class="card metric-card">' +
+        '<span class="m-label">Instalaciones completadas</span>' +
+        '<span class="m-value">'+completadas+'</span>' +
+        '<span class="m-hint">En el histórico de este punto</span>' +
+      '</div>' +
+      '<div class="card metric-card">' +
+        '<span class="m-label">Pendientes de confirmar</span>' +
+        '<span class="m-value">'+pendientes+'</span>' +
+        '<span class="m-hint">Con cita o sin cita previa</span>' +
+      '</div>' +
+      '<div class="card metric-card">' +
+        '<span class="m-label">A recibir de Volta</span>' +
+        '<span class="m-value">'+aRecibir+' €</span>' +
+        '<span class="m-hint">'+COMISION_POR_INSTALACION+' € por instalación completada</span>' +
+      '</div>' +
+      '<div class="card metric-card">' +
+        '<span class="m-label">Cobrado a clientes</span>' +
+        '<span class="m-value">'+cobrado+' €</span>' +
+        '<span class="m-hint">Importe de servicio en instalaciones completadas</span>' +
+      '</div>';
+  }
 
   // ---- modal de horarios ----
   function renderHorariosModal(){
