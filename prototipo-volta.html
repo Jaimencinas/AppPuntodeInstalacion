@@ -49,8 +49,7 @@
     font-size:22px; margin:30px 0 8px; }
   .sub{ color:var(--ink-soft); font-size:14px; max-width:50ch; margin:0 auto 34px; line-height:1.6; }
 
-  .choice-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; text-align:left; }
-  @media (max-width:760px){ .choice-grid{ grid-template-columns:1fr 1fr; } }
+  .choice-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; text-align:left; max-width:600px; margin:0 auto; }
   @media (max-width:560px){ .choice-grid{ grid-template-columns:1fr; } }
   .choice-card{
     background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
@@ -78,12 +77,6 @@
   <p class="sub">Prototipo navegable, datos de ejemplo — cada punto de instalación ve solo su propia agenda, y Volta tiene su propio panel con el control de toda la red.</p>
 
   <div class="choice-grid">
-    <a class="choice-card" href="reserva-cliente.html">
-      <span class="eyebrow">Soy cliente</span>
-      <h2>Reservar instalación</h2>
-      <p>Elegí tu punto, cuándo querés ir y tus datos. Al confirmar te damos un código QR para mostrar en el punto.</p>
-      <span class="cta">Reservar →</span>
-    </a>
     <a class="choice-card" href="login-punto.html">
       <span class="eyebrow">Soy un punto de instalación</span>
       <h2>Entrar a mi punto</h2>
