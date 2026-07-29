@@ -369,42 +369,44 @@
       </div>
     </div>
 
-    <div class="punto-shell">
-      <div class="card agenda-card">
-        <div class="section-head" data-toggle="agenda-body">
-          <h3 id="agenda-punto-title">Agenda</h3>
-          <span class="chevron">▾</span>
-        </div>
-        <div class="section-body" id="agenda-body">
-          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
-            <div class="date-filter-group" id="date-filter-group">
-              <button type="button" class="filter-chip" data-filter-mode="hoy">Hoy</button>
-              <button type="button" class="filter-chip" data-filter-mode="manana">Mañana</button>
-              <button type="button" class="filter-chip" data-filter-mode="semana">Esta semana</button>
-              <button type="button" class="filter-chip" data-filter-mode="personalizado">Personalizado</button>
-            </div>
-            <input type="date" id="agenda-date-input" class="date-input" style="display:none;" />
-            <button class="ghost-btn" id="btn-editar-horarios">Editar horarios</button>
-          </div>
-          <div id="agenda-list"><!-- injected --></div>
-        </div>
+    <div class="card section-card">
+      <div class="section-head" data-toggle="agenda-body">
+        <h3 id="agenda-punto-title">Agenda</h3>
+        <span class="chevron">▾</span>
       </div>
-      <div class="side-card card">
-        <div>
-          <h4>Stock disponible</h4>
-          <div class="stock-bar-wrap" style="margin-top:8px;">
-            <div class="stock-bar"><i id="stock-bar-fill" style="width:70%"></i></div>
-            <span class="stock-num" id="stock-num-label">7 / 10</span>
+      <div class="section-body" id="agenda-body">
+        <div class="punto-shell">
+          <div>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+              <div class="date-filter-group" id="date-filter-group">
+                <button type="button" class="filter-chip" data-filter-mode="hoy">Hoy</button>
+                <button type="button" class="filter-chip" data-filter-mode="manana">Mañana</button>
+                <button type="button" class="filter-chip" data-filter-mode="semana">Esta semana</button>
+                <button type="button" class="filter-chip" data-filter-mode="personalizado">Personalizado</button>
+              </div>
+              <input type="date" id="agenda-date-input" class="date-input" style="display:none;" />
+              <button class="ghost-btn" id="btn-editar-horarios">Editar horarios</button>
+            </div>
+            <div id="agenda-list"><!-- injected --></div>
           </div>
-        </div>
-        <div class="recompra-alert">
-          <b>2 baterías</b> llevan más de 3 meses en stock — elegibles para recompra.
-          <div style="margin-top:8px;"><button class="ghost-btn" style="width:100%;">Solicitar recompra</button></div>
-        </div>
-        <div>
-          <h4>Resumen del día</h4>
-          <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px; font-size:12.5px; color:var(--ink-soft);" id="resumen-dia">
-            <!-- injected -->
+          <div class="side-card card">
+            <div>
+              <h4>Stock disponible</h4>
+              <div class="stock-bar-wrap" style="margin-top:8px;">
+                <div class="stock-bar"><i id="stock-bar-fill" style="width:70%"></i></div>
+                <span class="stock-num" id="stock-num-label">7 / 10</span>
+              </div>
+            </div>
+            <div class="recompra-alert">
+              <b>2 baterías</b> llevan más de 3 meses en stock — elegibles para recompra.
+              <div style="margin-top:8px;"><button class="ghost-btn" style="width:100%;">Solicitar recompra</button></div>
+            </div>
+            <div>
+              <h4>Resumen del día</h4>
+              <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px; font-size:12.5px; color:var(--ink-soft);" id="resumen-dia">
+                <!-- injected -->
+              </div>
+            </div>
           </div>
         </div>
       </div>
