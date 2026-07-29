@@ -147,6 +147,24 @@
   }
   .filter-field select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
 
+  .trend-period-group{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .trend-chip{
+    background:transparent; border:1px solid var(--line); border-radius:999px; padding:6px 12px;
+    font-size:11px; font-weight:700; cursor:pointer; color:var(--ink-soft); font-family:inherit;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .trend-chip:hover{ border-color:var(--accent); color:var(--accent); }
+  .trend-chip.active{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .trend-custom-range{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .trend-custom-range input{
+    border:1px solid var(--line); border-radius:7px; padding:6px 8px; font-size:12px;
+    background:var(--surface); color:var(--ink); font-family:inherit;
+  }
+  .trend-nodata{
+    padding:36px 14px; text-align:center; color:var(--ink-soft); font-size:13px;
+    background:var(--surface-2); border-radius:8px; margin-top:14px;
+  }
+
   .trend-wrap{ position:relative; margin-top:14px; }
   .trend-svg{ width:100%; height:auto; display:block; overflow:visible; }
   .trend-tooltip{
@@ -192,7 +210,7 @@
   .map-card{ padding:16px; }
   .map-card h4{ font-size:13px; margin-bottom:10px; }
   .map-canvas{
-    position:relative; width:100%; aspect-ratio:1/1; border-radius:8px; overflow:hidden;
+    position:relative; width:100%; aspect-ratio:6/5; border-radius:8px; overflow:hidden;
     background:var(--surface);
     border:1px solid var(--line);
   }
@@ -333,12 +351,18 @@
             <select id="trend-point-filter"><!-- injected --></select>
           </label>
           <label class="filter-field">Periodo
-            <select id="trend-range-filter">
-              <option value="7">Últimos 7 días</option>
-              <option value="14" selected>Últimos 14 días</option>
-              <option value="30">Últimos 30 días</option>
-            </select>
+            <div class="trend-period-group" id="trend-period-group">
+              <button type="button" class="trend-chip" data-trend-mode="hoy">Hoy</button>
+              <button type="button" class="trend-chip" data-trend-mode="manana">Mañana</button>
+              <button type="button" class="trend-chip" data-trend-mode="7">Últimos 7 días</button>
+              <button type="button" class="trend-chip" data-trend-mode="30">Último mes</button>
+              <button type="button" class="trend-chip" data-trend-mode="custom">Personalizado</button>
+            </div>
           </label>
+        </div>
+        <div class="trend-custom-range" id="trend-custom-range" style="display:none; margin-top:10px;">
+          <label class="filter-field">Desde<input type="date" id="trend-desde" /></label>
+          <label class="filter-field">Hasta<input type="date" id="trend-hasta" /></label>
         </div>
         <div class="trend-wrap" id="trend-wrap">
           <div id="trend-svg-container"><!-- injected --></div>
@@ -350,6 +374,7 @@
             <tbody id="trend-table-body"><!-- injected --></tbody>
           </table>
         </div>
+        <div class="trend-nodata" id="trend-nodata" style="display:none;"></div>
         <div class="trend-analysis" id="trend-analysis"><!-- injected --></div>
       </div>
 
@@ -374,8 +399,8 @@
         <h4>Mapa de puntos por código postal</h4>
         <div class="sub" style="margin:-6px 0 12px; font-size:12px; color:var(--ink-soft);">Posición aproximada por provincia — útil para detectar zonas sin cobertura donde contratar nuevos puntos.</div>
         <div class="map-canvas" id="map-canvas">
-          <svg class="spain-silhouette" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M15,10 C22,7 30,7 40,10 C46,8 50,10 52,14 C58,17 63,19 68,22 C75,23 82,26 85,30 C88,36 87,44 84,50 C86,55 85,60 81,64 C78,70 74,76 68,80 C64,84 58,88 52,90 C46,92 41,90 40,86 C34,88 30,86 29,82 C24,85 19,82 18,76 C13,72 11,64 13,56 C10,50 10,42 13,35 C10,28 11,18 15,10 Z" fill="var(--surface-2)" stroke="var(--line)" stroke-width="0.6" />
+          <svg class="spain-silhouette" viewBox="0 0 120 100" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M14,10 L24,5 L42,3 L60,4 L70,7 L80,9 L90,14 L100,20 L96,30 L91,40 L89,50 L95,57 L87,64 L77,71 L66,76 L54,79 L42,77 L28,73 L44,66 L41,50 L39,34 L16,29 Z" fill="var(--surface-2)" stroke="var(--line)" stroke-width="0.7" />
           </svg>
           <div id="map-dots"><!-- dots injected --></div>
         </div>
@@ -424,24 +449,24 @@
 
   // ---------- posición en el mapa según el código postal (2 primeros dígitos = provincia) ----------
   var provinciasCoords = {
-    "01":{name:"Álava",x:49,y:20}, "02":{name:"Albacete",x:60,y:60}, "03":{name:"Alicante",x:67,y:66},
-    "04":{name:"Almería",x:59,y:80}, "05":{name:"Ávila",x:44,y:47}, "06":{name:"Badajoz",x:27,y:58},
-    "07":{name:"Baleares",x:86,y:54}, "08":{name:"Barcelona",x:78,y:33}, "09":{name:"Burgos",x:46,y:34},
-    "10":{name:"Cáceres",x:31,y:51}, "11":{name:"Cádiz",x:29,y:87}, "12":{name:"Castellón",x:68,y:52},
-    "13":{name:"Ciudad Real",x:49,y:59}, "14":{name:"Córdoba",x:40,y:71}, "15":{name:"A Coruña",x:15,y:11},
-    "16":{name:"Cuenca",x:57,y:53}, "17":{name:"Girona",x:83,y:26}, "18":{name:"Granada",x:51,y:79},
-    "19":{name:"Guadalajara",x:53,y:46}, "20":{name:"Guipúzcoa",x:52,y:15}, "21":{name:"Huelva",x:21,y:78},
-    "22":{name:"Huesca",x:62,y:21}, "23":{name:"Jaén",x:51,y:69}, "24":{name:"León",x:31,y:26},
-    "25":{name:"Lleida",x:70,y:27}, "26":{name:"La Rioja",x:50,y:27}, "27":{name:"Lugo",x:20,y:9},
-    "28":{name:"Madrid",x:48,y:47}, "29":{name:"Málaga",x:41,y:83}, "30":{name:"Murcia",x:61,y:73},
-    "31":{name:"Navarra",x:55,y:19}, "32":{name:"Ourense",x:18,y:17}, "33":{name:"Asturias",x:28,y:9},
-    "34":{name:"Palencia",x:38,y:31}, "35":{name:"Las Palmas",x:8,y:96}, "36":{name:"Pontevedra",x:12,y:19},
-    "37":{name:"Salamanca",x:31,y:41}, "38":{name:"Sta. Cruz de Tenerife",x:4,y:96}, "39":{name:"Cantabria",x:40,y:11},
-    "40":{name:"Segovia",x:43,y:41}, "41":{name:"Sevilla",x:33,y:77}, "42":{name:"Soria",x:52,y:35},
-    "43":{name:"Tarragona",x:74,y:38}, "44":{name:"Teruel",x:62,y:43}, "45":{name:"Toledo",x:45,y:53},
-    "46":{name:"Valencia",x:66,y:57}, "47":{name:"Valladolid",x:37,y:35}, "48":{name:"Vizcaya",x:47,y:13},
-    "49":{name:"Zamora",x:27,y:33}, "50":{name:"Zaragoza",x:60,y:33}, "51":{name:"Ceuta",x:32,y:91},
-    "52":{name:"Melilla",x:48,y:91}
+    "01":{name:"Álava",x:74,y:12}, "02":{name:"Albacete",x:70,y:58}, "03":{name:"Alicante",x:93,y:60},
+    "04":{name:"Almería",x:78,y:73}, "05":{name:"Ávila",x:50,y:45}, "06":{name:"Badajoz",x:44,y:60},
+    "07":{name:"Baleares",x:105,y:50}, "08":{name:"Barcelona",x:96,y:30}, "09":{name:"Burgos",x:58,y:28},
+    "10":{name:"Cáceres",x:42,y:48}, "11":{name:"Cádiz",x:42,y:80}, "12":{name:"Castellón",x:89,y:50},
+    "13":{name:"Ciudad Real",x:58,y:56}, "14":{name:"Córdoba",x:56,y:68}, "15":{name:"A Coruña",x:16,y:12},
+    "16":{name:"Cuenca",x:68,y:50}, "17":{name:"Girona",x:100,y:20}, "18":{name:"Granada",x:66,y:74},
+    "19":{name:"Guadalajara",x:62,y:42}, "20":{name:"Guipúzcoa",x:78,y:8}, "21":{name:"Huelva",x:28,y:73},
+    "22":{name:"Huesca",x:90,y:14}, "23":{name:"Jaén",x:64,y:66}, "24":{name:"León",x:34,y:24},
+    "25":{name:"Lleida",x:86,y:26}, "26":{name:"La Rioja",x:66,y:20}, "27":{name:"Lugo",x:22,y:14},
+    "28":{name:"Madrid",x:58,y:46}, "29":{name:"Málaga",x:58,y:77}, "30":{name:"Murcia",x:85,y:63},
+    "31":{name:"Navarra",x:82,y:14}, "32":{name:"Ourense",x:20,y:24}, "33":{name:"Asturias",x:42,y:4},
+    "34":{name:"Palencia",x:48,y:26}, "35":{name:"Las Palmas",x:8,y:95}, "36":{name:"Pontevedra",x:14,y:26},
+    "37":{name:"Salamanca",x:36,y:38}, "38":{name:"Sta. Cruz de Tenerife",x:4,y:95}, "39":{name:"Cantabria",x:62,y:6},
+    "40":{name:"Segovia",x:52,y:40}, "41":{name:"Sevilla",x:40,y:72}, "42":{name:"Soria",x:66,y:32},
+    "43":{name:"Tarragona",x:91,y:38}, "44":{name:"Teruel",x:78,y:44}, "45":{name:"Toledo",x:54,y:52},
+    "46":{name:"Valencia",x:89,y:52}, "47":{name:"Valladolid",x:46,y:32}, "48":{name:"Vizcaya",x:74,y:8},
+    "49":{name:"Zamora",x:30,y:32}, "50":{name:"Zaragoza",x:80,y:28}, "51":{name:"Ceuta",x:48,y:86},
+    "52":{name:"Melilla",x:62,y:86}
   };
   function coordsFromPostal(cp, seedName){
     var prov = provinciasCoords[String(cp||"").slice(0,2)];
@@ -556,7 +581,7 @@
   function renderMap(){
     document.getElementById("map-dots").innerHTML = puntosAdmin.map(function(p){
       var titulo = p.name+' — '+(p.provincia||p.city)+' ('+(p.postalCode||'s/CP')+') — stock '+p.stock;
-      return '<div class="map-dot" data-level="'+p.level+'" title="'+titulo+'" style="left:'+p.x+'%; top:'+p.y+'%;"></div>';
+      return '<div class="map-dot" data-level="'+p.level+'" title="'+titulo+'" style="left:'+(p.x/120*100).toFixed(2)+'%; top:'+p.y+'%;"></div>';
     }).join('');
   }
   renderMap();
@@ -627,14 +652,25 @@
   }).join('');
 
   // ---------- gráfico de tendencia: reservas por día (citas vs walk-in), filtrable por punto y periodo ----------
-  function pastDays(n){
+  function pastDays(n, endOffset){
+    endOffset = endOffset || 0;
     var out = [];
     for(var i=n-1;i>=0;i--){
       var d = new Date();
-      d.setDate(d.getDate()-i);
+      d.setDate(d.getDate()-(endOffset+i));
       out.push({ label:d.getDate()+"/"+(d.getMonth()+1) });
     }
     return out;
+  }
+  function todayLocalIso(){
+    var d = new Date();
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+  var TODAY_ISO = todayLocalIso();
+  function daysAgo(iso){
+    var a = new Date(TODAY_ISO+"T00:00:00");
+    var b = new Date(iso+"T00:00:00");
+    return Math.round((a-b)/86400000);
   }
 
   function hashSeed(str){
@@ -683,28 +719,92 @@
     '<option value="all">Todos los puntos</option>' +
     puntosAdmin.map(function(p){ return '<option value="'+p.name+'">'+p.name+'</option>'; }).join('');
 
-  var trendPoint = "all", trendRange = 14, trendShowTable = false;
+  var trendPoint = "all", trendMode = "7", trendShowTable = false;
 
-  function currentTrendData(){
+  function trendRangeInfo(){
+    if(trendMode==="hoy") return { n:1, endOffset:0 };
+    if(trendMode==="manana") return { n:0, endOffset:0, noData:true, msg:"Mañana todavía no pasó — no hay datos que mostrar." };
+    if(trendMode==="7") return { n:7, endOffset:0 };
+    if(trendMode==="30") return { n:30, endOffset:0 };
+    // personalizado
+    var desde = document.getElementById("trend-desde").value;
+    var hasta = document.getElementById("trend-hasta").value;
+    if(!desde || !hasta) return { n:0, endOffset:0, noData:true, msg:"Elegí una fecha de inicio y una de fin." };
+    var endOffset = daysAgo(hasta);
+    var startOffset = daysAgo(desde);
+    if(endOffset < 0) return { n:0, endOffset:0, noData:true, msg:"'Hasta' no puede ser una fecha futura." };
+    if(startOffset < endOffset) return { n:0, endOffset:0, noData:true, msg:"'Desde' tiene que ser anterior a 'hasta'." };
+    if(startOffset > MAX_RANGE-1) startOffset = MAX_RANGE-1;
+    return { n: startOffset - endOffset + 1, endOffset: endOffset };
+  }
+
+  function currentTrendData(info){
+    var sliceEnd = MAX_RANGE - info.endOffset;
+    var sliceStart = sliceEnd - info.n;
     if(trendPoint==="all"){
-      return { citas: totalCitas30.slice(-trendRange), walkin: totalWalkin30.slice(-trendRange) };
+      return { citas: totalCitas30.slice(sliceStart, sliceEnd), walkin: totalWalkin30.slice(sliceStart, sliceEnd) };
     }
     var pd = perPointSeries[trendPoint];
-    return { citas: pd.citas.slice(-trendRange), walkin: pd.walkin.slice(-trendRange) };
+    return { citas: pd.citas.slice(sliceStart, sliceEnd), walkin: pd.walkin.slice(sliceStart, sliceEnd) };
   }
 
   var VB_W = 640, VB_H = 210, PAD_L = 6, PAD_R = 6, PLOT_TOP = 12, PLOT_BOTTOM = 176, LABEL_Y = 200;
 
   function renderTrend(){
-    var trendDays = pastDays(trendRange);
-    var data = currentTrendData();
-    var citasData = data.citas, walkinData = data.walkin;
-    var n = trendRange;
-    var maxVal = Math.ceil(Math.max.apply(null, citasData.concat(walkinData)) * 1.18 / 5) * 5 || 5;
+    var info = trendRangeInfo();
 
+    if(info.noData){
+      document.getElementById("trend-wrap").style.display = "none";
+      document.getElementById("trend-table-wrap").style.display = "none";
+      document.getElementById("trend-analysis").style.display = "none";
+      var nd = document.getElementById("trend-nodata");
+      nd.style.display = "block";
+      nd.textContent = info.msg;
+      document.getElementById("trend-sub").textContent =
+        (trendPoint==="all" ? "Citas frente a walk-in, red completa" : "Citas frente a walk-in — "+trendPoint);
+      return;
+    }
+    document.getElementById("trend-nodata").style.display = "none";
+    document.getElementById("trend-analysis").style.display = "grid";
+
+    var trendDays = pastDays(info.n, info.endOffset);
+    var data = currentTrendData(info);
+    var citasData = data.citas, walkinData = data.walkin;
+    var n = info.n;
+
+    var periodoLabel = trendMode==="hoy" ? "hoy" : trendMode==="7" ? "últimos 7 días" :
+      trendMode==="30" ? "último mes" : (n+" día"+(n===1?"":"s")+" seleccionados");
     document.getElementById("trend-sub").textContent =
       (trendPoint==="all" ? "Citas frente a walk-in, red completa" : "Citas frente a walk-in — "+trendPoint) +
-      " · últimos "+trendRange+" días";
+      " · "+periodoLabel;
+
+    if(n===1){
+      var citVal = citasData[0], wkVal = walkinData[0];
+      var maxV = Math.max(citVal, wkVal, 1);
+      var bw = 90, gap = 40;
+      var x1 = VB_W/2 - bw - gap/2, x2 = VB_W/2 + gap/2;
+      var scaleH = PLOT_BOTTOM - PLOT_TOP - 24;
+      var h1 = (citVal/maxV) * scaleH, h2 = (wkVal/maxV) * scaleH;
+      document.getElementById("trend-svg-container").innerHTML =
+        '<svg class="trend-svg" viewBox="0 0 '+VB_W+' '+VB_H+'" role="img" aria-label="Reservas de '+trendDays[0].label+'">' +
+          '<rect x="'+x1+'" y="'+(PLOT_BOTTOM-h1)+'" width="'+bw+'" height="'+h1+'" rx="4" fill="var(--chart-1)" />' +
+          '<rect x="'+x2+'" y="'+(PLOT_BOTTOM-h2)+'" width="'+bw+'" height="'+h2+'" rx="4" fill="var(--chart-2)" />' +
+          '<text x="'+(x1+bw/2)+'" y="'+(PLOT_BOTTOM-h1-8)+'" font-size="14" font-weight="700" fill="var(--chart-1)" text-anchor="middle">'+citVal+'</text>' +
+          '<text x="'+(x2+bw/2)+'" y="'+(PLOT_BOTTOM-h2-8)+'" font-size="14" font-weight="700" fill="var(--chart-2)" text-anchor="middle">'+wkVal+'</text>' +
+          '<text x="'+(x1+bw/2)+'" y="'+LABEL_Y+'" font-size="10.5" fill="var(--ink-soft)" text-anchor="middle">Citas</text>' +
+          '<text x="'+(x2+bw/2)+'" y="'+LABEL_Y+'" font-size="10.5" fill="var(--ink-soft)" text-anchor="middle">Walk-in</text>' +
+        '</svg>';
+      document.getElementById("trend-table-body").innerHTML =
+        '<tr><td>'+trendDays[0].label+'</td><td style="font-variant-numeric:tabular-nums;">'+citVal+'</td>' +
+        '<td style="font-variant-numeric:tabular-nums;">'+wkVal+'</td>' +
+        '<td style="font-variant-numeric:tabular-nums;">'+(citVal+wkVal)+'</td></tr>';
+      document.getElementById("trend-table-wrap").style.display = trendShowTable ? "block" : "none";
+      document.getElementById("trend-wrap").style.display = trendShowTable ? "none" : "block";
+      renderTrendAnalysis(citasData, walkinData, trendDays, info);
+      return;
+    }
+
+    var maxVal = Math.ceil(Math.max.apply(null, citasData.concat(walkinData)) * 1.18 / 5) * 5 || 5;
 
     function xAt(i){ return PAD_L + i * ((VB_W - PAD_L - PAD_R) / (n - 1)); }
     function yAt(v){ return PLOT_BOTTOM - (v / maxVal) * (PLOT_BOTTOM - PLOT_TOP); }
@@ -775,12 +875,12 @@
     document.getElementById("trend-table-wrap").style.display = trendShowTable ? "block" : "none";
     document.getElementById("trend-wrap").style.display = trendShowTable ? "none" : "block";
 
-    renderTrendAnalysis(citasData, walkinData, trendDays);
+    renderTrendAnalysis(citasData, walkinData, trendDays, info);
   }
 
   function sum(arr){ return arr.reduce(function(a,b){ return a+b; }, 0); }
 
-  function renderTrendAnalysis(citasData, walkinData, trendDays){
+  function renderTrendAnalysis(citasData, walkinData, trendDays, info){
     var totalCitas = sum(citasData), totalWalkin = sum(walkinData);
     var total = totalCitas + totalWalkin;
     var n = citasData.length;
@@ -794,10 +894,12 @@
 
     var fullCitas = trendPoint==="all" ? totalCitas30 : perPointSeries[trendPoint].citas;
     var fullWalkin = trendPoint==="all" ? totalWalkin30 : perPointSeries[trendPoint].walkin;
-    var prevCitas = fullCitas.slice(-(n*2), -n);
-    var prevWalkin = fullWalkin.slice(-(n*2), -n);
+    var sliceEnd = MAX_RANGE - info.endOffset;
+    var sliceStart = sliceEnd - n;
+    var prevCitas = fullCitas.slice(sliceStart-n, sliceStart);
+    var prevWalkin = fullWalkin.slice(sliceStart-n, sliceStart);
     var deltaHtml;
-    if(prevCitas.length === n){
+    if(sliceStart-n >= 0 && prevCitas.length === n){
       var prevTotal = sum(prevCitas) + sum(prevWalkin);
       var pctChange = prevTotal>0 ? Math.round(((total-prevTotal)/prevTotal)*100) : 0;
       var arrow = pctChange>=0 ? "▲" : "▼";
@@ -813,16 +915,27 @@
       '<div class="trend-stat"><span class="ts-label">Día pico</span><span class="ts-value">'+picoValor+'</span><span class="ts-hint">'+picoLabel+'</span></div>';
   }
 
-  renderTrend();
-
   document.getElementById("trend-point-filter").addEventListener("change", function(e){
     trendPoint = e.target.value;
     renderTrend();
   });
-  document.getElementById("trend-range-filter").addEventListener("change", function(e){
-    trendRange = Number(e.target.value);
+
+  function setTrendMode(modo){
+    trendMode = modo;
+    document.querySelectorAll("[data-trend-mode]").forEach(function(b){
+      b.classList.toggle("active", b.dataset.trendMode===modo);
+    });
+    document.getElementById("trend-custom-range").style.display = modo==="custom" ? "flex" : "none";
     renderTrend();
+  }
+  document.getElementById("trend-period-group").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-trend-mode]");
+    if(!btn) return;
+    setTrendMode(btn.dataset.trendMode);
   });
+  document.getElementById("trend-desde").addEventListener("change", renderTrend);
+  document.getElementById("trend-hasta").addEventListener("change", renderTrend);
+  setTrendMode("7");
   document.getElementById("trend-toggle").addEventListener("click", function(){
     trendShowTable = !trendShowTable;
     this.textContent = trendShowTable ? "Ver como gráfico" : "Ver como tabla";
