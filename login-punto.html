@@ -174,34 +174,53 @@
     document.getElementById("f-punto-wrap").classList.remove("error");
   }
 
+  function entrar(punto){
+    var sessionData = JSON.stringify({name:punto.name, city:punto.city, type:punto.type, stock:punto.stock});
+    sessionStorage.setItem(SESSION_KEY, sessionData);
+    localStorage.setItem(SESSION_KEY, sessionData);
+    window.location.href = "panel-punto.html";
+  }
+
   document.getElementById("login-form").addEventListener("submit", function(e){
     e.preventDefault();
     clearError();
 
     var email = document.getElementById("lp-email").value.trim().toLowerCase();
     var clave = document.getElementById("lp-clave").value.trim();
+    if(!email){ document.getElementById("f-punto-wrap").classList.add("error"); showError("Escribe el correo electrónico de tu punto."); return; }
+
     var punto = allPuntos.find(function(p){ return (p.email||"").toLowerCase() === email; });
 
-    if(!email){ document.getElementById("f-punto-wrap").classList.add("error"); showError("Escribe el correo electrónico de tu punto."); return; }
-    if(!punto){
-      document.getElementById("f-punto-wrap").classList.add("error");
-      showError("No encontramos ningún punto registrado con ese correo.");
-      return;
+    function validarYEntrar(p){
+      var esValida = p.clave
+        ? clave === p.clave.trim()
+        : clave.toLowerCase() === DEMO_PASSWORD;
+      if(!clave || !esValida){
+        document.getElementById("f-clave-wrap").classList.add("error");
+        showError("Contraseña incorrecta para " + p.name + ".");
+        return;
+      }
+      entrar(p);
     }
 
-    var esValida = punto.clave
-      ? clave === punto.clave.trim()
-      : clave.toLowerCase() === DEMO_PASSWORD;
-    if(!clave || !esValida){
-      document.getElementById("f-clave-wrap").classList.add("error");
-      showError("Contraseña incorrecta para " + punto.name + ".");
-      return;
-    }
+    if(punto){ validarYEntrar(punto); return; }
 
-    var sessionData = JSON.stringify({name:punto.name, city:punto.city, type:punto.type, stock:punto.stock});
-    sessionStorage.setItem(SESSION_KEY, sessionData);
-    localStorage.setItem(SESSION_KEY, sessionData);
-    window.location.href = "panel-punto.html";
+    // no está en los datos de ejemplo/localStorage — probamos contra Airtable
+    fetch("/.netlify/functions/listar-puntos")
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var puntoAirtable = (data.ok ? data.puntos : []).find(function(p){ return (p.email||"").toLowerCase() === email; });
+        if(!puntoAirtable){
+          document.getElementById("f-punto-wrap").classList.add("error");
+          showError("No encontramos ningún punto registrado con ese correo.");
+          return;
+        }
+        validarYEntrar(puntoAirtable);
+      })
+      .catch(function(){
+        document.getElementById("f-punto-wrap").classList.add("error");
+        showError("No encontramos ningún punto registrado con ese correo.");
+      });
   });
 
   document.getElementById("toggle-clave").addEventListener("click", function(){
