@@ -109,6 +109,17 @@
   #register-form{ display:none; }
   #register-form.active{ display:block; }
 
+  .horario-dia-row{
+    display:grid; grid-template-columns:100px auto 1fr 1fr; align-items:center; gap:8px;
+    padding:7px 0; border-top:1px solid var(--line); font-size:12.5px;
+  }
+  .horario-dia-row:first-child{ border-top:none; }
+  .horario-dia-row select{
+    border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-size:12.5px;
+    background:var(--surface); color:var(--ink); font-family:inherit; width:100%;
+  }
+  .horario-dia-row select:disabled{ opacity:.4; }
+
   .admin-gate-overlay{
     position:fixed; inset:0; z-index:999; display:flex; align-items:center; justify-content:center;
     background:var(--bg); padding:20px;
@@ -228,18 +239,37 @@
           <span class="hint">Este email será el usuario con el que el punto inicia sesión en su panel.</span>
           <span class="err-msg">Indica un email válido — lo necesita para iniciar sesión.</span>
         </div>
+        <div class="field">
+          <label for="rp-tipo-titular">Empresa / Autónomo</label>
+          <select id="rp-tipo-titular">
+            <option value="autonomo">Autónomo</option>
+            <option value="empresa">Empresa</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2" id="titular-empresa-wrap" style="display:none;">
+        <div class="field">
+          <label for="rp-razon-social">Nombre de la empresa</label>
+          <input id="rp-razon-social" placeholder="Nombre de la empresa S.L." />
+        </div>
+        <div class="field">
+          <label for="rp-cif">CIF</label>
+          <input id="rp-cif" placeholder="B12345678" />
+        </div>
+      </div>
+      <div class="grid2" id="titular-autonomo-wrap">
+        <div class="field">
+          <label for="rp-nif">NIF</label>
+          <input id="rp-nif" placeholder="12345678A" />
+        </div>
       </div>
 
       <div class="section-label spaced">Operación</div>
+      <div class="field">
+        <label>Horario de atención</label>
+        <div id="horario-dias"><!-- injected --></div>
+      </div>
       <div class="grid2">
-        <div class="field">
-          <label for="rp-horario">Horario de atención</label>
-          <input id="rp-horario" placeholder="L–S 9:00–20:00" />
-        </div>
-        <div class="field">
-          <label for="rp-capacidad">Instalaciones/día (capacidad)</label>
-          <input id="rp-capacidad" type="number" min="0" placeholder="8" />
-        </div>
         <div class="field">
           <label for="rp-stock">Stock inicial (0–10)</label>
           <input id="rp-stock" type="number" min="0" max="10" value="5" />
@@ -252,6 +282,22 @@
       <div class="field">
         <label for="rp-notas">Notas internas (solo visibles para Volta)</label>
         <textarea id="rp-notas" placeholder="Condiciones comerciales, incidencias previas, observaciones internas..."></textarea>
+      </div>
+
+      <div class="section-label spaced">Información de pagos</div>
+      <div class="grid2">
+        <div class="field" style="grid-column:1 / -1;">
+          <label for="rp-pago-nombre">Nombre de empresa / autónomo</label>
+          <input id="rp-pago-nombre" placeholder="Nombre para emitir la transferencia" />
+        </div>
+        <div class="field">
+          <label for="rp-iban">IBAN</label>
+          <input id="rp-iban" placeholder="ES00 0000 0000 0000 0000 0000" />
+        </div>
+        <div class="field">
+          <label for="rp-direccion-bancaria">Dirección bancaria</label>
+          <input id="rp-direccion-bancaria" placeholder="Sucursal / dirección del banco" />
+        </div>
       </div>
 
       <div class="section-label spaced">Acceso del punto</div>
@@ -302,6 +348,58 @@
     "taller.malasana@volta-demo.es","gruas.centro@volta-demo.es","taller.eixample@volta-demo.es",
     "punto.gracia@volta-demo.es","taller.ruzafa@volta-demo.es","gruas.bilbao@volta-demo.es"];
 
+  // ---- Empresa / Autónomo ----
+  function toggleTitular(){
+    var esEmpresa = document.getElementById("rp-tipo-titular").value === "empresa";
+    document.getElementById("titular-empresa-wrap").style.display = esEmpresa ? "grid" : "none";
+    document.getElementById("titular-autonomo-wrap").style.display = esEmpresa ? "none" : "grid";
+  }
+  document.getElementById("rp-tipo-titular").addEventListener("change", toggleTitular);
+  toggleTitular();
+
+  // ---- Horario de atención: casillas + desplegables ----
+  var diasSemana = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  function horasOptions(selected){
+    var out = "";
+    for(var h=0; h<24; h++){
+      for(var m=0; m<60; m+=30){
+        var val = String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+        out += '<option value="'+val+'"'+(val===selected?' selected':'')+'>'+val+'</option>';
+      }
+    }
+    return out;
+  }
+  function renderHorarioDias(){
+    var wrap = document.getElementById("horario-dias");
+    wrap.innerHTML = diasSemana.map(function(dia,i){
+      var abierto = i<6; // Lunes a Sábado abierto por defecto, Domingo cerrado
+      return '<div class="horario-dia-row">' +
+        '<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" data-dia-abierto="'+i+'" '+(abierto?'checked':'')+' /> '+dia+'</label>' +
+        '<span></span>' +
+        '<select data-dia-inicio="'+i+'" '+(abierto?'':'disabled')+'>'+horasOptions("09:00")+'</select>' +
+        '<select data-dia-fin="'+i+'" '+(abierto?'':'disabled')+'>'+horasOptions("20:00")+'</select>' +
+      '</div>';
+    }).join('');
+  }
+  renderHorarioDias();
+  document.getElementById("horario-dias").addEventListener("change", function(e){
+    var t = e.target;
+    if(t.dataset.diaAbierto===undefined) return;
+    var idx = t.dataset.diaAbierto;
+    document.querySelector('[data-dia-inicio="'+idx+'"]').disabled = !t.checked;
+    document.querySelector('[data-dia-fin="'+idx+'"]').disabled = !t.checked;
+  });
+  function getHorarioSemanal(){
+    return diasSemana.map(function(dia,i){
+      return {
+        dia: dia,
+        abierto: document.querySelector('[data-dia-abierto="'+i+'"]').checked,
+        inicio: document.querySelector('[data-dia-inicio="'+i+'"]').value,
+        fin: document.querySelector('[data-dia-fin="'+i+'"]').value
+      };
+    });
+  }
+
   document.getElementById("register-form").addEventListener("submit", function(e){
     e.preventDefault();
 
@@ -346,6 +444,8 @@
     var stock = Math.max(0, Math.min(10, Number(document.getElementById("rp-stock").value) || 0));
     var level = stock >= 6 ? "alto" : stock >= 3 ? "medio" : "bajo";
 
+    var tipoTitular = document.getElementById("rp-tipo-titular").value;
+
     var nuevo = {
       name: nombre,
       type: document.getElementById("rp-tipo").value,
@@ -355,11 +455,17 @@
       responsable: document.getElementById("rp-responsable").value.trim(),
       phone: document.getElementById("rp-telefono").value.trim(),
       email: document.getElementById("rp-email").value.trim(),
-      hours: document.getElementById("rp-horario").value.trim(),
-      capacidad: Number(document.getElementById("rp-capacidad").value) || 0,
+      tipoTitular: tipoTitular,
+      razonSocial: tipoTitular==="empresa" ? document.getElementById("rp-razon-social").value.trim() : "",
+      cif: tipoTitular==="empresa" ? document.getElementById("rp-cif").value.trim() : "",
+      nif: tipoTitular==="autonomo" ? document.getElementById("rp-nif").value.trim() : "",
+      horario: getHorarioSemanal(),
       stock: stock, level: level,
       descripcion: document.getElementById("rp-descripcion").value.trim(),
       notas: document.getElementById("rp-notas").value.trim(),
+      pagoNombre: document.getElementById("rp-pago-nombre").value.trim(),
+      iban: document.getElementById("rp-iban").value.trim(),
+      direccionBancaria: document.getElementById("rp-direccion-bancaria").value.trim(),
       clave: clave,
       registradoEl: new Date().toISOString()
     };
