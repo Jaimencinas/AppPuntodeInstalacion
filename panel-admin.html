@@ -111,6 +111,8 @@
   .kpi-filter-row{ display:flex; gap:12px; align-items:flex-end; margin-bottom:16px; }
   .kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:8px; }
   @media (max-width:820px){ .kpi-grid{ grid-template-columns:repeat(2,1fr); } }
+  #kpi-grid-ventas{ grid-template-columns:repeat(3,1fr); }
+  @media (max-width:820px){ #kpi-grid-ventas{ grid-template-columns:repeat(2,1fr); } }
   .kpi{ padding:16px 16px 14px; border-top:3px solid var(--accent); }
   .kpi .label{ font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-soft); font-weight:700; }
   .kpi .value{ font-family: var(--font-display); font-size:28px; font-weight:800; margin-top:6px; font-variant-numeric:tabular-nums; }
@@ -177,16 +179,25 @@
   th.sortable .arrow{ display:inline-block; margin-left:3px; opacity:.5; font-size:9px; }
   th.sortable.active .arrow{ opacity:1; color:var(--accent); }
 
+  .trend-analysis{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:18px;
+    padding-top:16px; border-top:1px solid var(--line);
+  }
+  @media (max-width:700px){ .trend-analysis{ grid-template-columns:1fr 1fr; } }
+  .trend-stat{ display:flex; flex-direction:column; gap:3px; }
+  .trend-stat .ts-label{ font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:700; }
+  .trend-stat .ts-value{ font-family:var(--font-display); font-size:19px; font-weight:800; }
+  .trend-stat .ts-hint{ font-size:11px; color:var(--ink-soft); }
+
   .map-card{ padding:16px; }
   .map-card h4{ font-size:13px; margin-bottom:10px; }
   .map-canvas{
-    position:relative; height:320px; border-radius:8px; overflow:hidden;
-    background:
-      linear-gradient(var(--surface-2) 1px, transparent 1px) 0 0/28px 28px,
-      linear-gradient(90deg, var(--surface-2) 1px, transparent 1px) 0 0/28px 28px,
-      var(--surface);
+    position:relative; width:100%; aspect-ratio:1/1; border-radius:8px; overflow:hidden;
+    background:var(--surface);
     border:1px solid var(--line);
   }
+  .spain-silhouette{ position:absolute; inset:0; width:100%; height:100%; }
+  #map-dots{ position:absolute; inset:0; }
   .map-dot{
     position:absolute; width:11px; height:11px; border-radius:50%;
     border:2px solid var(--surface); box-shadow:0 0 0 1px var(--line);
@@ -339,6 +350,7 @@
             <tbody id="trend-table-body"><!-- injected --></tbody>
           </table>
         </div>
+        <div class="trend-analysis" id="trend-analysis"><!-- injected --></div>
       </div>
 
       <div class="card alerts-card">
@@ -359,8 +371,14 @@
 
     <div class="admin-layout">
       <div class="card map-card">
-        <h4>Puntos activos por nivel de stock</h4>
-        <div class="map-canvas" id="map-canvas"><!-- dots injected --></div>
+        <h4>Mapa de puntos por código postal</h4>
+        <div class="sub" style="margin:-6px 0 12px; font-size:12px; color:var(--ink-soft);">Posición aproximada por provincia — útil para detectar zonas sin cobertura donde contratar nuevos puntos.</div>
+        <div class="map-canvas" id="map-canvas">
+          <svg class="spain-silhouette" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M15,10 C22,7 30,7 40,10 C46,8 50,10 52,14 C58,17 63,19 68,22 C75,23 82,26 85,30 C88,36 87,44 84,50 C86,55 85,60 81,64 C78,70 74,76 68,80 C64,84 58,88 52,90 C46,92 41,90 40,86 C34,88 30,86 29,82 C24,85 19,82 18,76 C13,72 11,64 13,56 C10,50 10,42 13,35 C10,28 11,18 15,10 Z" fill="var(--surface-2)" stroke="var(--line)" stroke-width="0.6" />
+          </svg>
+          <div id="map-dots"><!-- dots injected --></div>
+        </div>
         <div class="map-legend">
           <span class="sw"><i style="background:var(--ok)"></i> Stock alto</span>
           <span class="sw"><i style="background:var(--warn)"></i> Stock medio</span>
@@ -392,17 +410,49 @@
 
   // ===================== ADMIN: puntos de la red =====================
   var puntosAdmin = [
-    {name:"Taller Nervión", city:"Sevilla", type:"Taller", stock:7, level:"alto", x:38, y:70, instalaciones:42, trazabilidad:98.5, ticketMedio:30.20, noPresentado:3.1, rotacion:2.1, recomprasPendientes:2, recomprasAtrasadas:0, tiempoMedio:29},
-    {name:"Gruas Triana 24h", city:"Sevilla", type:"Gruista", stock:4, level:"medio", x:33, y:74, instalaciones:27, trazabilidad:95.2, ticketMedio:29.50, noPresentado:4.8, rotacion:1.6, recomprasPendientes:1, recomprasAtrasadas:1, tiempoMedio:33},
-    {name:"Punto Este Volta", city:"Sevilla", type:"Personal propio", stock:2, level:"bajo", x:44, y:66, instalaciones:9, trazabilidad:88.0, ticketMedio:28.00, noPresentado:8.5, rotacion:0.9, recomprasPendientes:0, recomprasAtrasadas:0, tiempoMedio:41},
-    {name:"Taller Malasaña", city:"Madrid", type:"Taller", stock:9, level:"alto", x:52, y:38, instalaciones:55, trazabilidad:99.1, ticketMedio:30.50, noPresentado:2.0, rotacion:2.4, recomprasPendientes:3, recomprasAtrasadas:1, tiempoMedio:26},
-    {name:"Gruas Centro", city:"Madrid", type:"Gruista", stock:6, level:"alto", x:56, y:35, instalaciones:38, trazabilidad:97.0, ticketMedio:29.90, noPresentado:3.5, rotacion:2.0, recomprasPendientes:2, recomprasAtrasadas:2, tiempoMedio:31},
-    {name:"Taller Eixample", city:"Barcelona", type:"Taller", stock:3, level:"medio", x:82, y:32, instalaciones:19, trazabilidad:91.4, ticketMedio:28.70, noPresentado:6.2, rotacion:1.3, recomprasPendientes:1, recomprasAtrasadas:1, tiempoMedio:37},
-    {name:"Punto Gràcia", city:"Barcelona", type:"Personal propio", stock:1, level:"bajo", x:85, y:28, instalaciones:6, trazabilidad:82.3, ticketMedio:27.50, noPresentado:11.0, rotacion:0.6, recomprasPendientes:0, recomprasAtrasadas:0, tiempoMedio:46},
-    {name:"Taller Ruzafa", city:"Valencia", type:"Taller", stock:8, level:"alto", x:66, y:56, instalaciones:47, trazabilidad:98.0, ticketMedio:30.10, noPresentado:2.8, rotacion:2.2, recomprasPendientes:2, recomprasAtrasadas:1, tiempoMedio:28},
-    {name:"Gruas Bilbao Norte", city:"Bilbao", type:"Gruista", stock:5, level:"medio", x:47, y:14, instalaciones:24, trazabilidad:94.6, ticketMedio:29.20, noPresentado:5.0, rotacion:1.5, recomprasPendientes:1, recomprasAtrasadas:1, tiempoMedio:34}
+    {name:"Taller Nervión", city:"Sevilla", type:"Taller", stock:7, level:"alto", postalCode:"41010", instalaciones:42, trazabilidad:98.5, ticketMedio:30.20, noPresentado:3.1, rotacion:2.1, recomprasPendientes:2, recomprasAtrasadas:0, tiempoMedio:29},
+    {name:"Gruas Triana 24h", city:"Sevilla", type:"Gruista", stock:4, level:"medio", postalCode:"41010", instalaciones:27, trazabilidad:95.2, ticketMedio:29.50, noPresentado:4.8, rotacion:1.6, recomprasPendientes:1, recomprasAtrasadas:1, tiempoMedio:33},
+    {name:"Punto Este Volta", city:"Sevilla", type:"Personal propio", stock:2, level:"bajo", postalCode:"41020", instalaciones:9, trazabilidad:88.0, ticketMedio:28.00, noPresentado:8.5, rotacion:0.9, recomprasPendientes:0, recomprasAtrasadas:0, tiempoMedio:41},
+    {name:"Taller Malasaña", city:"Madrid", type:"Taller", stock:9, level:"alto", postalCode:"28004", instalaciones:55, trazabilidad:99.1, ticketMedio:30.50, noPresentado:2.0, rotacion:2.4, recomprasPendientes:3, recomprasAtrasadas:1, tiempoMedio:26},
+    {name:"Gruas Centro", city:"Madrid", type:"Gruista", stock:6, level:"alto", postalCode:"28013", instalaciones:38, trazabilidad:97.0, ticketMedio:29.90, noPresentado:3.5, rotacion:2.0, recomprasPendientes:2, recomprasAtrasadas:2, tiempoMedio:31},
+    {name:"Taller Eixample", city:"Barcelona", type:"Taller", stock:3, level:"medio", postalCode:"08029", instalaciones:19, trazabilidad:91.4, ticketMedio:28.70, noPresentado:6.2, rotacion:1.3, recomprasPendientes:1, recomprasAtrasadas:1, tiempoMedio:37},
+    {name:"Punto Gràcia", city:"Barcelona", type:"Personal propio", stock:1, level:"bajo", postalCode:"08012", instalaciones:6, trazabilidad:82.3, ticketMedio:27.50, noPresentado:11.0, rotacion:0.6, recomprasPendientes:0, recomprasAtrasadas:0, tiempoMedio:46},
+    {name:"Taller Ruzafa", city:"Valencia", type:"Taller", stock:8, level:"alto", postalCode:"46006", instalaciones:47, trazabilidad:98.0, ticketMedio:30.10, noPresentado:2.8, rotacion:2.2, recomprasPendientes:2, recomprasAtrasadas:1, tiempoMedio:28},
+    {name:"Gruas Bilbao Norte", city:"Bilbao", type:"Gruista", stock:5, level:"medio", postalCode:"48001", instalaciones:24, trazabilidad:94.6, ticketMedio:29.20, noPresentado:5.0, rotacion:1.5, recomprasPendientes:1, recomprasAtrasadas:1, tiempoMedio:34}
   ];
   puntosAdmin.forEach(function(p){ p.ingresos = p.instalaciones * 30; });
+
+  // ---------- posición en el mapa según el código postal (2 primeros dígitos = provincia) ----------
+  var provinciasCoords = {
+    "01":{name:"Álava",x:49,y:20}, "02":{name:"Albacete",x:60,y:60}, "03":{name:"Alicante",x:67,y:66},
+    "04":{name:"Almería",x:59,y:80}, "05":{name:"Ávila",x:44,y:47}, "06":{name:"Badajoz",x:27,y:58},
+    "07":{name:"Baleares",x:86,y:54}, "08":{name:"Barcelona",x:78,y:33}, "09":{name:"Burgos",x:46,y:34},
+    "10":{name:"Cáceres",x:31,y:51}, "11":{name:"Cádiz",x:29,y:87}, "12":{name:"Castellón",x:68,y:52},
+    "13":{name:"Ciudad Real",x:49,y:59}, "14":{name:"Córdoba",x:40,y:71}, "15":{name:"A Coruña",x:15,y:11},
+    "16":{name:"Cuenca",x:57,y:53}, "17":{name:"Girona",x:83,y:26}, "18":{name:"Granada",x:51,y:79},
+    "19":{name:"Guadalajara",x:53,y:46}, "20":{name:"Guipúzcoa",x:52,y:15}, "21":{name:"Huelva",x:21,y:78},
+    "22":{name:"Huesca",x:62,y:21}, "23":{name:"Jaén",x:51,y:69}, "24":{name:"León",x:31,y:26},
+    "25":{name:"Lleida",x:70,y:27}, "26":{name:"La Rioja",x:50,y:27}, "27":{name:"Lugo",x:20,y:9},
+    "28":{name:"Madrid",x:48,y:47}, "29":{name:"Málaga",x:41,y:83}, "30":{name:"Murcia",x:61,y:73},
+    "31":{name:"Navarra",x:55,y:19}, "32":{name:"Ourense",x:18,y:17}, "33":{name:"Asturias",x:28,y:9},
+    "34":{name:"Palencia",x:38,y:31}, "35":{name:"Las Palmas",x:8,y:96}, "36":{name:"Pontevedra",x:12,y:19},
+    "37":{name:"Salamanca",x:31,y:41}, "38":{name:"Sta. Cruz de Tenerife",x:4,y:96}, "39":{name:"Cantabria",x:40,y:11},
+    "40":{name:"Segovia",x:43,y:41}, "41":{name:"Sevilla",x:33,y:77}, "42":{name:"Soria",x:52,y:35},
+    "43":{name:"Tarragona",x:74,y:38}, "44":{name:"Teruel",x:62,y:43}, "45":{name:"Toledo",x:45,y:53},
+    "46":{name:"Valencia",x:66,y:57}, "47":{name:"Valladolid",x:37,y:35}, "48":{name:"Vizcaya",x:47,y:13},
+    "49":{name:"Zamora",x:27,y:33}, "50":{name:"Zaragoza",x:60,y:33}, "51":{name:"Ceuta",x:32,y:91},
+    "52":{name:"Melilla",x:48,y:91}
+  };
+  function coordsFromPostal(cp, seedName){
+    var prov = provinciasCoords[String(cp||"").slice(0,2)];
+    var base = prov || {x:50, y:50};
+    var rand = seededRandom(hashSeed(seedName||"p"));
+    return { x: base.x + (rand()-0.5)*4, y: base.y + (rand()-0.5)*4, provincia: prov ? prov.name : null };
+  }
+  puntosAdmin.forEach(function(p){
+    var c = coordsFromPostal(p.postalCode, p.name);
+    p.x = c.x; p.y = c.y; p.provincia = c.provincia;
+  });
 
   // ---------- puntos dados de alta desde registro-punto.html ----------
   (function mergePuntosNuevos(){
@@ -411,9 +461,10 @@
     catch(e){ nuevos = []; }
     nuevos.forEach(function(p){
       if(puntosAdmin.some(function(existing){ return existing.name===p.name; })) return;
+      var c = coordsFromPostal(p.postalCode, p.name);
       puntosAdmin.push({
         name:p.name, city:p.city, type:p.type, stock:p.stock, level:p.level,
-        x: Math.round(15 + Math.random()*70), y: Math.round(15 + Math.random()*70),
+        postalCode:p.postalCode, x:c.x, y:c.y, provincia:c.provincia,
         instalaciones:0, trazabilidad:0, ticketMedio:0, noPresentado:0, rotacion:0,
         recomprasPendientes:0, recomprasAtrasadas:0, tiempoMedio:0, ingresos:0
       });
@@ -443,12 +494,6 @@
       }, point:function(p){
         var share = Math.round((p.ingresos/8010)*100);
         return { value:fmtEs(p.ingresos,0)+" €", delta:share+"% del total de la red", cls:"up" };
-      } },
-    { label:"Ticket medio de servicio", all:function(){
-        return { value:"29,80 €", delta:"▲ 0,3 pts vs. objetivo (30 €)", cls:"up" };
-      }, point:function(p){
-        var ok = p.ticketMedio >= 29;
-        return { value:fmtEs(p.ticketMedio,2)+" €", delta:(ok?"▲ cerca del objetivo (30 €)":"▼ por debajo del objetivo (30 €)"), cls:ok?"up":"warn" };
       } },
     { label:"Tasa de no presentado", all:function(){
         return { value:"4.2%", delta:"▲ 0.6 pts vs. mes anterior", cls:"warn" };
@@ -509,8 +554,9 @@
   });
 
   function renderMap(){
-    document.getElementById("map-canvas").innerHTML = puntosAdmin.map(function(p){
-      return '<div class="map-dot" data-level="'+p.level+'" title="'+p.name+' — stock '+p.stock+'" style="left:'+p.x+'%; top:'+p.y+'%;"></div>';
+    document.getElementById("map-dots").innerHTML = puntosAdmin.map(function(p){
+      var titulo = p.name+' — '+(p.provincia||p.city)+' ('+(p.postalCode||'s/CP')+') — stock '+p.stock;
+      return '<div class="map-dot" data-level="'+p.level+'" title="'+titulo+'" style="left:'+p.x+'%; top:'+p.y+'%;"></div>';
     }).join('');
   }
   renderMap();
@@ -728,6 +774,43 @@
 
     document.getElementById("trend-table-wrap").style.display = trendShowTable ? "block" : "none";
     document.getElementById("trend-wrap").style.display = trendShowTable ? "none" : "block";
+
+    renderTrendAnalysis(citasData, walkinData, trendDays);
+  }
+
+  function sum(arr){ return arr.reduce(function(a,b){ return a+b; }, 0); }
+
+  function renderTrendAnalysis(citasData, walkinData, trendDays){
+    var totalCitas = sum(citasData), totalWalkin = sum(walkinData);
+    var total = totalCitas + totalWalkin;
+    var n = citasData.length;
+    var promedio = (total / n).toFixed(1);
+    var pctCitas = total>0 ? Math.round((totalCitas/total)*100) : 0;
+    var pctWalkin = 100 - pctCitas;
+    var totales = citasData.map(function(v,i){ return v + walkinData[i]; });
+    var maxIdx = totales.indexOf(Math.max.apply(null, totales));
+    var picoLabel = trendDays[maxIdx].label;
+    var picoValor = totales[maxIdx];
+
+    var fullCitas = trendPoint==="all" ? totalCitas30 : perPointSeries[trendPoint].citas;
+    var fullWalkin = trendPoint==="all" ? totalWalkin30 : perPointSeries[trendPoint].walkin;
+    var prevCitas = fullCitas.slice(-(n*2), -n);
+    var prevWalkin = fullWalkin.slice(-(n*2), -n);
+    var deltaHtml;
+    if(prevCitas.length === n){
+      var prevTotal = sum(prevCitas) + sum(prevWalkin);
+      var pctChange = prevTotal>0 ? Math.round(((total-prevTotal)/prevTotal)*100) : 0;
+      var arrow = pctChange>=0 ? "▲" : "▼";
+      deltaHtml = arrow+" "+Math.abs(pctChange)+"% vs. periodo anterior ("+prevTotal+")";
+    } else {
+      deltaHtml = "Sin periodo anterior completo para comparar";
+    }
+
+    document.getElementById("trend-analysis").innerHTML =
+      '<div class="trend-stat"><span class="ts-label">Total del periodo</span><span class="ts-value">'+total+'</span><span class="ts-hint">'+deltaHtml+'</span></div>' +
+      '<div class="trend-stat"><span class="ts-label">Promedio diario</span><span class="ts-value">'+promedio+'</span><span class="ts-hint">reservas / día</span></div>' +
+      '<div class="trend-stat"><span class="ts-label">Reparto citas / walk-in</span><span class="ts-value">'+pctCitas+'% / '+pctWalkin+'%</span><span class="ts-hint">'+totalCitas+' citas · '+totalWalkin+' walk-in</span></div>' +
+      '<div class="trend-stat"><span class="ts-label">Día pico</span><span class="ts-value">'+picoValor+'</span><span class="ts-hint">'+picoLabel+'</span></div>';
   }
 
   renderTrend();
