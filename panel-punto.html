@@ -291,13 +291,42 @@
   }
   .day-group-head:first-child{ border-top:none; margin-top:0; padding-top:4px; }
 
-  .metrics-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
-  @media (max-width:900px){ .metrics-grid{ grid-template-columns:1fr 1fr; } }
+  .metrics-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
+  @media (max-width:760px){ .metrics-grid{ grid-template-columns:1fr 1fr; } }
   @media (max-width:520px){ .metrics-grid{ grid-template-columns:1fr; } }
   .metric-card{ padding:16px; display:flex; flex-direction:column; gap:4px; }
   .metric-card .m-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:700; }
   .metric-card .m-value{ font-family:var(--font-display); font-size:26px; font-weight:800; letter-spacing:.01em; }
   .metric-card .m-hint{ font-size:11.5px; color:var(--ink-soft); }
+
+  .section-card{ padding:18px; margin-bottom:20px; }
+  .section-head{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    cursor:pointer; user-select:none; flex-wrap:wrap;
+  }
+  .section-head .chevron{
+    font-size:11px; color:var(--ink-soft); transition:transform .15s ease; flex-shrink:0;
+  }
+  .section-head.collapsed .chevron{ transform:rotate(-90deg); }
+  .section-body{ margin-top:16px; }
+  .section-body.collapsed{ display:none; }
+
+  .metrics-custom-range{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .metrics-custom-range .field{ max-width:180px; }
+
+  .pagos-row{
+    display:grid; grid-template-columns:100px 1fr auto auto; align-items:center; gap:12px;
+    padding:12px 4px; border-top:1px solid var(--line); font-size:12.5px;
+  }
+  .pagos-row:first-of-type{ border-top:none; }
+  .pagos-row .fecha{ font-family:ui-monospace,"SF Mono",monospace; color:var(--ink-soft); }
+  .pagos-row .concepto{ font-weight:600; }
+  .pagos-row .referencia{ font-family:ui-monospace,"SF Mono",monospace; font-size:11.5px; color:var(--ink-soft); }
+  .pagos-row .importe{ font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .pagos-head-row{
+    display:grid; grid-template-columns:100px 1fr auto auto; gap:12px; padding:0 4px 8px;
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:700;
+  }
 </style>
 
 <div class="wrap">
@@ -320,13 +349,34 @@
       <h2>Panel del punto de instalación</h2>
       <p>Solo ves tu propia agenda, tu stock y tus pedidos — no los de otros puntos de la red. Confirmar una instalación exige elegir la batería concreta por número de serie.</p>
     </div>
-    <div class="metrics-grid" id="metrics-grid"><!-- injected --></div>
+    <div class="card section-card">
+      <div class="section-head" data-toggle="metrics-body">
+        <h3>Métricas</h3>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="metrics-body">
+        <div class="date-filter-group" id="metrics-filter-group">
+          <button type="button" class="filter-chip" data-metrics-mode="semana">Esta semana</button>
+          <button type="button" class="filter-chip" data-metrics-mode="mes">Mes</button>
+          <button type="button" class="filter-chip" data-metrics-mode="trimestre">Trimestre</button>
+          <button type="button" class="filter-chip" data-metrics-mode="personalizado">Personalizado</button>
+        </div>
+        <div class="metrics-custom-range" id="metrics-custom-range" style="display:none;">
+          <div class="field"><label>Desde</label><input type="date" id="metrics-desde" /></div>
+          <div class="field"><label>Hasta</label><input type="date" id="metrics-hasta" /></div>
+        </div>
+        <div class="metrics-grid" id="metrics-grid" style="margin-top:16px; margin-bottom:0;"><!-- injected --></div>
+      </div>
+    </div>
 
     <div class="punto-shell">
       <div class="card agenda-card">
-        <div class="agenda-head" style="flex-wrap:wrap; gap:10px;">
+        <div class="section-head" data-toggle="agenda-body">
           <h3 id="agenda-punto-title">Agenda</h3>
-          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <span class="chevron">▾</span>
+        </div>
+        <div class="section-body" id="agenda-body">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
             <div class="date-filter-group" id="date-filter-group">
               <button type="button" class="filter-chip" data-filter-mode="hoy">Hoy</button>
               <button type="button" class="filter-chip" data-filter-mode="manana">Mañana</button>
@@ -336,8 +386,8 @@
             <input type="date" id="agenda-date-input" class="date-input" style="display:none;" />
             <button class="ghost-btn" id="btn-editar-horarios">Editar horarios</button>
           </div>
+          <div id="agenda-list"><!-- injected --></div>
         </div>
-        <div id="agenda-list"><!-- injected --></div>
       </div>
       <div class="side-card card">
         <div>
@@ -360,22 +410,39 @@
       </div>
     </div>
 
-    <div class="card order-card">
-      <div class="order-head">
+    <div class="card section-card">
+      <div class="section-head" data-toggle="pedidos-body">
         <h3>Pedidos de baterías</h3>
-        <p>Elegí si es reposición de stock para instalaciones o un pedido de comercio para vender directamente en tu punto.</p>
+        <span class="chevron">▾</span>
       </div>
-      <div class="order-toggle-row">
-        <button class="primary-btn" id="btn-pedido-instalaciones" style="margin-top:0;">Pedido para instalaciones</button>
-        <button class="ghost-btn" id="btn-pedido-comercio">Pedido para comercio</button>
-      </div>
-      <div id="pedido-instalaciones-panel" style="display:none; margin-top:18px;">
-        <div class="battery-grid" id="battery-grid"><!-- injected --></div>
-        <div class="order-summary">
-          <span class="total">Total del pedido: <b id="order-total">0 unidades</b></span>
-          <button class="primary-btn" id="send-order-btn" style="margin-top:0;" disabled>Enviar pedido a Volta</button>
+      <div class="section-body" id="pedidos-body">
+        <p style="margin:0 0 14px; font-size:12.5px; color:var(--ink-soft); max-width:56ch;">Elegí si es reposición de stock para instalaciones o un pedido de comercio para vender directamente en tu punto.</p>
+        <div class="order-toggle-row" style="margin-top:0;">
+          <button class="primary-btn" id="btn-pedido-instalaciones" style="margin-top:0;">Pedido para instalaciones</button>
+          <button class="ghost-btn" id="btn-pedido-comercio">Pedido para comercio</button>
         </div>
-        <div id="order-confirm-box"></div>
+        <div id="pedido-instalaciones-panel" style="display:none; margin-top:18px;">
+          <div class="battery-grid" id="battery-grid"><!-- injected --></div>
+          <div class="order-summary">
+            <span class="total">Total del pedido: <b id="order-total">0 unidades</b></span>
+            <button class="primary-btn" id="send-order-btn" style="margin-top:0;" disabled>Enviar pedido a Volta</button>
+          </div>
+          <div id="order-confirm-box"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card section-card">
+      <div class="section-head" data-toggle="pagos-body">
+        <h3>Pagos</h3>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body" id="pagos-body">
+        <p style="margin:0 0 10px; font-size:12.5px; color:var(--ink-soft); max-width:60ch;">Transferencias bancarias que Volta te ha realizado por las instalaciones completadas.</p>
+        <div class="pagos-head-row">
+          <span>Fecha</span><span>Concepto</span><span>Referencia</span><span>Importe</span>
+        </div>
+        <div id="pagos-list"><!-- injected --></div>
       </div>
     </div>
   </section>
@@ -418,6 +485,16 @@
   var stock = typeof activePunto.stock === "number" ? activePunto.stock : 7;
   document.getElementById("stock-bar-fill").style.width = (stock*10)+"%";
   document.getElementById("stock-num-label").textContent = stock+" / 10";
+
+  // ===================== secciones desplegables =====================
+  document.addEventListener("click", function(e){
+    var head = e.target.closest("[data-toggle]");
+    if(!head) return;
+    var body = document.getElementById(head.dataset.toggle);
+    if(!body) return;
+    var collapsed = body.classList.toggle("collapsed");
+    head.classList.toggle("collapsed", collapsed);
+  });
 
   // ===================== agenda + modal (solo de este punto) =====================
   var HOY = "2026-07-15";
@@ -495,13 +572,43 @@
 
   var reservasVisibles = []; // aplanado de las reservas mostradas (una o varias fechas), para mapear índices del botón confirmar
 
-  var COMISION_POR_INSTALACION = 12; // € que Volta le abona al punto por cada instalación completada
-  var IMPORTE_SERVICIO_PROMEDIO = 30; // € que el punto cobra al cliente por el servicio de instalación
+  var COMISION_POR_INSTALACION = 12; // € que Volta le abona al punto por cada instalación completada — Volta cobra al cliente, el punto nunca cobra
 
   function addDays(iso, n){
     var d = new Date(iso+"T00:00:00");
     d.setDate(d.getDate()+n);
-    return d.toISOString().slice(0,10);
+    var y = d.getFullYear();
+    var m = String(d.getMonth()+1).padStart(2,"0");
+    var day = String(d.getDate()).padStart(2,"0");
+    return y+"-"+m+"-"+day;
+  }
+  function ymd(y,m,d){ return y+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0"); }
+  function weekRange(iso){
+    var lunes = addDays(iso, -isoToWeekdayIdx(iso));
+    return { desde: lunes, hasta: addDays(lunes,6) };
+  }
+  function monthRange(iso){
+    var d = new Date(iso+"T00:00:00");
+    var last = new Date(d.getFullYear(), d.getMonth()+1, 0);
+    return { desde: ymd(d.getFullYear(), d.getMonth()+1, 1), hasta: ymd(last.getFullYear(), last.getMonth()+1, last.getDate()) };
+  }
+  function quarterRange(iso){
+    var d = new Date(iso+"T00:00:00");
+    var qStart = Math.floor(d.getMonth()/3)*3;
+    var desdeD = new Date(d.getFullYear(), qStart, 1);
+    var hastaD = new Date(d.getFullYear(), qStart+3, 0);
+    return { desde: ymd(desdeD.getFullYear(), desdeD.getMonth()+1, desdeD.getDate()), hasta: ymd(hastaD.getFullYear(), hastaD.getMonth()+1, hastaD.getDate()) };
+  }
+  var metricsMode = "semana";
+  function getMetricsRange(){
+    if(metricsMode==="mes") return monthRange(HOY);
+    if(metricsMode==="trimestre") return quarterRange(HOY);
+    if(metricsMode==="personalizado"){
+      var desde = document.getElementById("metrics-desde").value || HOY;
+      var hasta = document.getElementById("metrics-hasta").value || HOY;
+      return { desde: desde, hasta: hasta };
+    }
+    return weekRange(HOY); // "semana"
   }
   function fechaLarga(iso){
     var d = new Date(iso+"T00:00:00");
@@ -586,33 +693,64 @@
 
   // ===================== métricas del punto =====================
   function renderMetrics(){
-    var completadas = reservas.filter(function(r){ return r.estado==="completada"; }).length;
-    var pendientes = reservas.filter(function(r){ return r.estado!=="completada"; }).length;
+    var rango = getMetricsRange();
+    var enRango = reservas.filter(function(r){ return r.date >= rango.desde && r.date <= rango.hasta; });
+    var completadas = enRango.filter(function(r){ return r.estado==="completada"; }).length;
+    var pendientes = enRango.filter(function(r){ return r.estado!=="completada"; }).length;
     var aRecibir = completadas * COMISION_POR_INSTALACION;
-    var cobrado = completadas * IMPORTE_SERVICIO_PROMEDIO;
 
     document.getElementById("metrics-grid").innerHTML =
       '<div class="card metric-card">' +
         '<span class="m-label">Instalaciones completadas</span>' +
         '<span class="m-value">'+completadas+'</span>' +
-        '<span class="m-hint">En el histórico de este punto</span>' +
+        '<span class="m-hint">Entre '+rango.desde+' y '+rango.hasta+'</span>' +
       '</div>' +
       '<div class="card metric-card">' +
         '<span class="m-label">Pendientes de confirmar</span>' +
         '<span class="m-value">'+pendientes+'</span>' +
-        '<span class="m-hint">Con cita o sin cita previa</span>' +
+        '<span class="m-hint">Con cita o sin cita previa, en el periodo</span>' +
       '</div>' +
       '<div class="card metric-card">' +
         '<span class="m-label">A recibir de Volta</span>' +
         '<span class="m-value">'+aRecibir+' €</span>' +
-        '<span class="m-hint">'+COMISION_POR_INSTALACION+' € por instalación completada</span>' +
-      '</div>' +
-      '<div class="card metric-card">' +
-        '<span class="m-label">Cobrado a clientes</span>' +
-        '<span class="m-value">'+cobrado+' €</span>' +
-        '<span class="m-hint">Importe de servicio en instalaciones completadas</span>' +
+        '<span class="m-hint">'+COMISION_POR_INSTALACION+' € por instalación completada, ya cobrada al cliente por Volta</span>' +
       '</div>';
   }
+
+  function setMetricsMode(modo){
+    metricsMode = modo;
+    document.querySelectorAll("[data-metrics-mode]").forEach(function(b){
+      b.classList.toggle("active", b.dataset.metricsMode===modo);
+    });
+    document.getElementById("metrics-custom-range").style.display = modo==="personalizado" ? "flex" : "none";
+    renderMetrics();
+  }
+  document.getElementById("metrics-filter-group").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-metrics-mode]");
+    if(!btn) return;
+    setMetricsMode(btn.dataset.metricsMode);
+  });
+  document.getElementById("metrics-desde").addEventListener("change", renderMetrics);
+  document.getElementById("metrics-hasta").addEventListener("change", renderMetrics);
+  setMetricsMode("semana");
+
+  // ===================== pagos (transferencias de Volta al punto) =====================
+  var pagos = [
+    {fecha:"2026-07-05", concepto:"Instalaciones junio 2026 (6 unidades)", referencia:"TRF-2026-034", importe:72},
+    {fecha:"2026-06-05", concepto:"Instalaciones mayo 2026 (9 unidades)", referencia:"TRF-2026-021", importe:108},
+    {fecha:"2026-05-05", concepto:"Instalaciones abril 2026 (4 unidades)", referencia:"TRF-2026-009", importe:48}
+  ];
+  function renderPagos(){
+    document.getElementById("pagos-list").innerHTML = pagos.map(function(p){
+      return '<div class="pagos-row">' +
+        '<span class="fecha">'+p.fecha+'</span>' +
+        '<span class="concepto">'+p.concepto+'</span>' +
+        '<span class="referencia">'+p.referencia+'</span>' +
+        '<span class="importe">'+p.importe+' €</span>' +
+      '</div>';
+    }).join('');
+  }
+  renderPagos();
 
   // ---- modal de horarios ----
   function renderHorariosModal(){
@@ -813,10 +951,6 @@
             return '<div class="serial-item'+(selectedSerial===s.sn?' selected':'')+'" data-sn="'+s.sn+'">' +
               '<span class="sn">'+s.sn+'</span><span class="age">'+s.age+'</span></div>';
           }).join('') +
-        '</div>' +
-        '<div class="field" style="margin-bottom:16px;">' +
-          '<label for="importe">Importe cobrado de servicio (€)</label>' +
-          '<input id="importe" type="text" value="30" />' +
         '</div>' +
         '<div class="modal-actions">' +
           '<button class="ghost-btn" id="modal-cancel">Cancelar</button>' +
