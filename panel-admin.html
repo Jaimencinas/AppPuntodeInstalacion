@@ -209,22 +209,12 @@
 
   .map-card{ padding:16px; }
   .map-card h4{ font-size:13px; margin-bottom:10px; }
-  .map-canvas{
-    position:relative; width:100%; aspect-ratio:6/5; border-radius:8px; overflow:hidden;
-    background:var(--surface);
-    border:1px solid var(--line);
-  }
-  .spain-silhouette{ position:absolute; inset:0; width:100%; height:100%; }
-  #map-dots{ position:absolute; inset:0; }
-  .map-dot{
-    position:absolute; width:11px; height:11px; border-radius:50%;
-    border:2px solid var(--surface); box-shadow:0 0 0 1px var(--line);
-    cursor:pointer;
-  }
-  .map-dot[data-level="alto"]{ background:var(--ok); }
-  .map-dot[data-level="medio"]{ background:var(--warn); }
-  .map-dot[data-level="bajo"]{ background:var(--danger); }
-  .map-legend{ display:flex; gap:16px; margin-top:10px; font-size:11.5px; color:var(--ink-soft); }
+  .rank-row{ display:grid; grid-template-columns:120px 1fr 34px; align-items:center; gap:10px; padding:7px 0; }
+  .rank-name{ font-size:12.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .rank-bar-wrap{ background:var(--surface-2); border-radius:6px; overflow:hidden; height:13px; }
+  .rank-bar{ height:100%; border-radius:6px; }
+  .rank-value{ font-size:11.5px; font-variant-numeric:tabular-nums; text-align:right; color:var(--ink-soft); }
+  .map-legend{ display:flex; gap:16px; margin-top:10px; font-size:11.5px; color:var(--ink-soft); flex-wrap:wrap; }
   .map-legend .sw{ display:inline-flex; align-items:center; gap:5px; }
   .map-legend i{ width:8px; height:8px; border-radius:50%; display:inline-block; }
 
@@ -353,7 +343,7 @@
           <label class="filter-field">Periodo
             <div class="trend-period-group" id="trend-period-group">
               <button type="button" class="trend-chip" data-trend-mode="hoy">Hoy</button>
-              <button type="button" class="trend-chip" data-trend-mode="manana">Mañana</button>
+              <button type="button" class="trend-chip" data-trend-mode="ayer">Ayer</button>
               <button type="button" class="trend-chip" data-trend-mode="7">Últimos 7 días</button>
               <button type="button" class="trend-chip" data-trend-mode="30">Último mes</button>
               <button type="button" class="trend-chip" data-trend-mode="custom">Personalizado</button>
@@ -396,18 +386,13 @@
 
     <div class="admin-layout">
       <div class="card map-card">
-        <h4>Mapa de puntos por código postal</h4>
-        <div class="sub" style="margin:-6px 0 12px; font-size:12px; color:var(--ink-soft);">Posición aproximada por provincia — útil para detectar zonas sin cobertura donde contratar nuevos puntos.</div>
-        <div class="map-canvas" id="map-canvas">
-          <svg class="spain-silhouette" viewBox="0 0 120 100" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M14,10 L24,5 L42,3 L60,4 L70,7 L80,9 L90,14 L100,20 L96,30 L91,40 L89,50 L95,57 L87,64 L77,71 L66,76 L54,79 L42,77 L28,73 L44,66 L41,50 L39,34 L16,29 Z" fill="var(--surface-2)" stroke="var(--line)" stroke-width="0.7" />
-          </svg>
-          <div id="map-dots"><!-- dots injected --></div>
-        </div>
+        <h4>Ranking de puntos por instalaciones (mes)</h4>
+        <div class="sub" style="margin:-6px 0 12px; font-size:12px; color:var(--ink-soft);">Ordenado de mayor a menor actividad — el color indica su tasa de trazabilidad, para detectar de un vistazo qué puntos necesitan atención.</div>
+        <div id="rank-list"><!-- injected --></div>
         <div class="map-legend">
-          <span class="sw"><i style="background:var(--ok)"></i> Stock alto</span>
-          <span class="sw"><i style="background:var(--warn)"></i> Stock medio</span>
-          <span class="sw"><i style="background:var(--danger)"></i> Stock bajo</span>
+          <span class="sw"><i style="background:var(--ok)"></i> Trazabilidad ≥ 95%</span>
+          <span class="sw"><i style="background:var(--warn)"></i> Entre 90% y 95%</span>
+          <span class="sw"><i style="background:var(--danger)"></i> Por debajo de 90%</span>
         </div>
       </div>
 
@@ -447,38 +432,6 @@
   ];
   puntosAdmin.forEach(function(p){ p.ingresos = p.instalaciones * 30; });
 
-  // ---------- posición en el mapa según el código postal (2 primeros dígitos = provincia) ----------
-  var provinciasCoords = {
-    "01":{name:"Álava",x:74,y:12}, "02":{name:"Albacete",x:70,y:58}, "03":{name:"Alicante",x:93,y:60},
-    "04":{name:"Almería",x:78,y:73}, "05":{name:"Ávila",x:50,y:45}, "06":{name:"Badajoz",x:44,y:60},
-    "07":{name:"Baleares",x:105,y:50}, "08":{name:"Barcelona",x:96,y:30}, "09":{name:"Burgos",x:58,y:28},
-    "10":{name:"Cáceres",x:42,y:48}, "11":{name:"Cádiz",x:42,y:80}, "12":{name:"Castellón",x:89,y:50},
-    "13":{name:"Ciudad Real",x:58,y:56}, "14":{name:"Córdoba",x:56,y:68}, "15":{name:"A Coruña",x:16,y:12},
-    "16":{name:"Cuenca",x:68,y:50}, "17":{name:"Girona",x:100,y:20}, "18":{name:"Granada",x:66,y:74},
-    "19":{name:"Guadalajara",x:62,y:42}, "20":{name:"Guipúzcoa",x:78,y:8}, "21":{name:"Huelva",x:28,y:73},
-    "22":{name:"Huesca",x:90,y:14}, "23":{name:"Jaén",x:64,y:66}, "24":{name:"León",x:34,y:24},
-    "25":{name:"Lleida",x:86,y:26}, "26":{name:"La Rioja",x:66,y:20}, "27":{name:"Lugo",x:22,y:14},
-    "28":{name:"Madrid",x:58,y:46}, "29":{name:"Málaga",x:58,y:77}, "30":{name:"Murcia",x:85,y:63},
-    "31":{name:"Navarra",x:82,y:14}, "32":{name:"Ourense",x:20,y:24}, "33":{name:"Asturias",x:42,y:4},
-    "34":{name:"Palencia",x:48,y:26}, "35":{name:"Las Palmas",x:8,y:95}, "36":{name:"Pontevedra",x:14,y:26},
-    "37":{name:"Salamanca",x:36,y:38}, "38":{name:"Sta. Cruz de Tenerife",x:4,y:95}, "39":{name:"Cantabria",x:62,y:6},
-    "40":{name:"Segovia",x:52,y:40}, "41":{name:"Sevilla",x:40,y:72}, "42":{name:"Soria",x:66,y:32},
-    "43":{name:"Tarragona",x:91,y:38}, "44":{name:"Teruel",x:78,y:44}, "45":{name:"Toledo",x:54,y:52},
-    "46":{name:"Valencia",x:89,y:52}, "47":{name:"Valladolid",x:46,y:32}, "48":{name:"Vizcaya",x:74,y:8},
-    "49":{name:"Zamora",x:30,y:32}, "50":{name:"Zaragoza",x:80,y:28}, "51":{name:"Ceuta",x:48,y:86},
-    "52":{name:"Melilla",x:62,y:86}
-  };
-  function coordsFromPostal(cp, seedName){
-    var prov = provinciasCoords[String(cp||"").slice(0,2)];
-    var base = prov || {x:50, y:50};
-    var rand = seededRandom(hashSeed(seedName||"p"));
-    return { x: base.x + (rand()-0.5)*4, y: base.y + (rand()-0.5)*4, provincia: prov ? prov.name : null };
-  }
-  puntosAdmin.forEach(function(p){
-    var c = coordsFromPostal(p.postalCode, p.name);
-    p.x = c.x; p.y = c.y; p.provincia = c.provincia;
-  });
-
   // ---------- puntos dados de alta desde registro-punto.html ----------
   (function mergePuntosNuevos(){
     var nuevos;
@@ -486,10 +439,9 @@
     catch(e){ nuevos = []; }
     nuevos.forEach(function(p){
       if(puntosAdmin.some(function(existing){ return existing.name===p.name; })) return;
-      var c = coordsFromPostal(p.postalCode, p.name);
       puntosAdmin.push({
         name:p.name, city:p.city, type:p.type, stock:p.stock, level:p.level,
-        postalCode:p.postalCode, x:c.x, y:c.y, provincia:c.provincia,
+        postalCode:p.postalCode,
         instalaciones:0, trazabilidad:0, ticketMedio:0, noPresentado:0, rotacion:0,
         recomprasPendientes:0, recomprasAtrasadas:0, tiempoMedio:0, ingresos:0
       });
@@ -578,13 +530,20 @@
     renderKpis();
   });
 
-  function renderMap(){
-    document.getElementById("map-dots").innerHTML = puntosAdmin.map(function(p){
-      var titulo = p.name+' — '+(p.provincia||p.city)+' ('+(p.postalCode||'s/CP')+') — stock '+p.stock;
-      return '<div class="map-dot" data-level="'+p.level+'" title="'+titulo+'" style="left:'+(p.x/120*100).toFixed(2)+'%; top:'+p.y+'%;"></div>';
+  function renderRanking(){
+    var max = Math.max.apply(null, puntosAdmin.map(function(p){ return p.instalaciones; })) || 1;
+    var sorted = puntosAdmin.slice().sort(function(a,b){ return b.instalaciones - a.instalaciones; });
+    document.getElementById("rank-list").innerHTML = sorted.map(function(p){
+      var color = p.trazabilidad>=95 ? "var(--ok)" : p.trazabilidad>=90 ? "var(--warn)" : "var(--danger)";
+      var pct = (p.instalaciones / max) * 100;
+      return '<div class="rank-row" title="'+p.name+' — '+p.trazabilidad.toFixed(1)+'% trazabilidad">' +
+        '<span class="rank-name">'+p.name+'</span>' +
+        '<div class="rank-bar-wrap"><div class="rank-bar" style="width:'+pct.toFixed(1)+'%; background:'+color+';"></div></div>' +
+        '<span class="rank-value">'+p.instalaciones+'</span>' +
+      '</div>';
     }).join('');
   }
-  renderMap();
+  renderRanking();
 
   var levelColor = {alto:"var(--ok)", medio:"var(--warn)", bajo:"var(--danger)"};
 
@@ -723,7 +682,7 @@
 
   function trendRangeInfo(){
     if(trendMode==="hoy") return { n:1, endOffset:0 };
-    if(trendMode==="manana") return { n:0, endOffset:0, noData:true, msg:"Mañana todavía no pasó — no hay datos que mostrar." };
+    if(trendMode==="ayer") return { n:1, endOffset:1 };
     if(trendMode==="7") return { n:7, endOffset:0 };
     if(trendMode==="30") return { n:30, endOffset:0 };
     // personalizado
@@ -772,7 +731,7 @@
     var citasData = data.citas, walkinData = data.walkin;
     var n = info.n;
 
-    var periodoLabel = trendMode==="hoy" ? "hoy" : trendMode==="7" ? "últimos 7 días" :
+    var periodoLabel = trendMode==="hoy" ? "hoy" : trendMode==="ayer" ? "ayer" : trendMode==="7" ? "últimos 7 días" :
       trendMode==="30" ? "último mes" : (n+" día"+(n===1?"":"s")+" seleccionados");
     document.getElementById("trend-sub").textContent =
       (trendPoint==="all" ? "Citas frente a walk-in, red completa" : "Citas frente a walk-in — "+trendPoint) +
