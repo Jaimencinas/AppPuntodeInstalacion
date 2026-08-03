@@ -1,4 +1,5 @@
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
 (function(){
   if(!localStorage.getItem("volta_punto_activo")){
@@ -124,6 +125,16 @@
     padding:12px 4px; border-top:1px solid var(--line);
   }
   .res-row:first-of-type{ border-top:none; }
+  @media (max-width:640px){
+    .res-row{
+      grid-template-columns:1fr auto; grid-template-areas:"time chip" "main main" "btn btn";
+      row-gap:6px;
+    }
+    .res-row .res-time{ grid-area:time; }
+    .res-row .chip{ grid-area:chip; justify-self:end; }
+    .res-row .res-main{ grid-area:main; }
+    .res-row .row-btn{ grid-area:btn; width:100%; }
+  }
   .res-time{ font-family: ui-monospace, "SF Mono", monospace; font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
   .res-time.walkin{ color:var(--accent); }
   .res-main .cliente{ font-weight:600; font-size:13.5px; }
@@ -197,7 +208,7 @@
   }
   .modal-overlay.open{ display:flex; }
   .modal{
-    background:var(--surface); border-radius:12px; max-width:420px; width:100%;
+    background:var(--surface); border-radius:12px; max-width:420px; width:100%; min-width:0;
     padding:22px; box-shadow:var(--shadow); border:1px solid var(--line);
   }
   .modal h3{ font-size:17px; margin-bottom:4px; }
@@ -260,6 +271,15 @@
     padding:8px 0; border-top:1px solid var(--line); font-size:12.5px;
   }
   .schedule-day:first-of-type{ border-top:none; }
+  @media (max-width:480px){
+    .schedule-day{
+      grid-template-columns:1fr 1fr; grid-template-areas:"label label" "inicio fin"; row-gap:6px;
+    }
+    .schedule-day label{ grid-area:label; }
+    .schedule-day > span{ display:none; }
+    .schedule-day input[type="time"]:first-of-type{ grid-area:inicio; }
+    .schedule-day input[type="time"]:last-of-type{ grid-area:fin; }
+  }
   .schedule-day input[type="time"]{
     border:1px solid var(--line); border-radius:6px; padding:5px 6px; font-size:12px;
     background:var(--surface); color:var(--ink); font-family:inherit; width:100%;
@@ -275,6 +295,10 @@
     font-size:11px; color:var(--danger); cursor:pointer; font-family:inherit;
   }
   .closure-add{ display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:end; margin-bottom:14px; }
+  @media (max-width:480px){
+    .closure-add{ grid-template-columns:1fr 1fr; }
+    .closure-add button{ grid-column:1 / -1; }
+  }
 
   .date-filter-group{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
   .filter-chip{
@@ -326,6 +350,90 @@
   .pagos-head-row{
     display:grid; grid-template-columns:100px 1fr auto auto; gap:12px; padding:0 4px 8px;
     font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:700;
+  }
+  @media (max-width:640px){
+    .pagos-head-row{ display:none; }
+    .pagos-row{
+      grid-template-columns:1fr auto; grid-template-areas:"fecha importe" "concepto concepto" "referencia referencia";
+      row-gap:4px;
+    }
+    .pagos-row .fecha{ grid-area:fecha; }
+    .pagos-row .importe{ grid-area:importe; justify-self:end; }
+    .pagos-row .concepto{ grid-area:concepto; }
+    .pagos-row .referencia{ grid-area:referencia; }
+  }
+
+  @media (max-width:640px){
+    .wrap{ padding:20px 16px 60px; }
+    .logo-badge{ width:40px; height:40px; }
+    .wordmark .w-top{ font-size:22px; }
+    .wordmark .w-bottom{ font-size:10px; }
+    .tag{ font-size:13px; }
+    .status-pill{ font-size:11.5px; padding:5px 11px; }
+    .session-pill{ font-size:13px; }
+    .session-pill .logout-link{ font-size:13px; }
+
+    .view-head h2{ font-size:24px; }
+    .view-head p{ font-size:14.5px; }
+
+    .primary-btn{ padding:14px 16px; font-size:14px; }
+    .ghost-btn{ padding:12px 16px; font-size:13px; }
+
+    .agenda-head h3{ font-size:17px; }
+    .filter-chip{ padding:9px 14px; font-size:12.5px; }
+    .date-input{ padding:10px 12px; font-size:14px; }
+    #btn-editar-horarios{ width:100%; }
+
+    .res-row{ padding:14px 4px; }
+    .res-time{ font-size:14px; }
+    .res-main .cliente{ font-size:15px; }
+    .res-main .veh{ font-size:13px; }
+    .chip{ font-size:11.5px; padding:4px 10px; }
+    .row-btn{ padding:11px 14px; font-size:13.5px; }
+
+    .side-card h4{ font-size:13.5px; }
+    .stock-num{ font-size:14.5px; }
+    .recompra-alert{ font-size:13.5px; }
+
+    .order-head h3{ font-size:17px; }
+    .order-head p{ font-size:13.5px; }
+    .battery-card{ padding:16px; }
+    .battery-card .sku{ font-size:18px; }
+    .battery-card .desc{ font-size:13px; }
+    .battery-card .price{ font-size:12.5px; }
+    .qty-btn{ width:38px; height:38px; font-size:18px; }
+    .qty-num{ font-size:16px; min-width:26px; }
+    .order-summary .total{ font-size:13.5px; }
+    .order-confirm{ font-size:13.5px; }
+
+    .modal{ padding:20px 18px; }
+    .modal h3{ font-size:19px; }
+    .modal .sub{ font-size:13.5px; }
+    .modal-actions .ghost-btn, .modal-actions .primary-btn{ flex:1; text-align:center; }
+    .serial-item{ padding:12px 12px; font-size:13.5px; }
+    .field label{ font-size:12.5px; }
+    .field input{ padding:12px 12px; font-size:16px; }
+
+    .photo-explain{ font-size:13.5px; }
+    .photo-drop{ padding:32px 14px; font-size:13.5px; }
+    .photo-drop .icon{ font-size:26px; }
+
+    .schedule-day{ font-size:13.5px; }
+    .schedule-day input[type="time"]{ padding:9px 8px; font-size:14px; }
+    .closure-item{ font-size:13px; }
+    .closure-add input{ font-size:16px; }
+
+    .metric-card .m-value{ font-size:28px; }
+    .metric-card .m-label{ font-size:11px; }
+    .metric-card .m-hint{ font-size:12px; }
+
+    .section-head h3{ font-size:17px; }
+    .section-head .chevron{ font-size:14px; }
+
+    .pagos-row{ font-size:13.5px; padding:14px 4px; }
+    .pagos-row .referencia{ font-size:12px; }
+
+    .foot-note{ font-size:12.5px; }
   }
 </style>
 
