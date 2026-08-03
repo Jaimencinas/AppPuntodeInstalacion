@@ -484,10 +484,30 @@
 
     var syncNote = document.getElementById("airtable-sync-note");
     syncNote.textContent = "Guardando en Airtable…";
+    var payloadAirtable = {
+      nombre: nuevo.name,
+      tipo: nuevo.type,
+      ciudad: nuevo.city,
+      postalCode: nuevo.postalCode,
+      direccion: nuevo.address,
+      responsable: nuevo.responsable,
+      telefono: nuevo.phone,
+      email: nuevo.email,
+      tipoTitular: nuevo.tipoTitular,
+      razonSocial: nuevo.razonSocial,
+      cif: nuevo.cif,
+      nif: nuevo.nif,
+      pagoNombre: nuevo.pagoNombre,
+      iban: nuevo.iban,
+      direccionBancaria: nuevo.direccionBancaria,
+      clave: nuevo.clave,
+      descripcion: nuevo.descripcion,
+      notas: nuevo.notas
+    };
     fetch("/.netlify/functions/crear-punto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevo)
+      body: JSON.stringify(payloadAirtable)
     }).then(function(r){ return r.json().then(function(data){ return {status:r.status, data:data}; }); })
       .then(function(res){
         if(res.status===200 && res.data.ok){
